@@ -2,7 +2,7 @@
 
 A native macOS menu bar app for [Laravel Valet](https://laravel.com/docs/valet) — manage your local development environments without opening Terminal.
 
-![Menu bar icon](docs/screenshots/menubar-placeholder.png)
+![Menu bar icon](https://github.com/user-attachments/assets/4b23eb3d-14fe-4474-a1d5-256f4673dd75)
 
 ## Features
 
@@ -15,12 +15,6 @@ A native macOS menu bar app for [Laravel Valet](https://laravel.com/docs/valet) 
 - **Auto-refresh** — background polling at 5s / 15s / 30s / 1m intervals
 - **Onboarding** — detects missing Homebrew, Valet, or PHP with setup links
 - **Dark mode** — automatic, native macOS appearance
-
-## Screenshots
-
-| Status Menu | Sites Submenu | PHP Switcher |
-|-------------|---------------|--------------|
-| ![status](docs/screenshots/status-placeholder.png) | ![sites](docs/screenshots/sites-placeholder.png) | ![php](docs/screenshots/php-placeholder.png) |
 
 ## Requirements
 
