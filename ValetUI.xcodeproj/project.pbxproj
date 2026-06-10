@@ -1,0 +1,607 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA000000000011 /* ValetUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000010 /* ValetUIApp.swift */; };
+		AA000000000013 /* Site.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000012 /* Site.swift */; };
+		AA000000000015 /* PHPVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000014 /* PHPVersion.swift */; };
+		AA000000000017 /* ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000016 /* ServiceStatus.swift */; };
+		AA000000000019 /* ValetStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000018 /* ValetStatus.swift */; };
+		AA00000000001B /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000001A /* AppSettings.swift */; };
+		AA00000000001D /* ShellCommandResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000001C /* ShellCommandResult.swift */; };
+		AA00000000001F /* ShellCommandService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000001E /* ShellCommandService.swift */; };
+		AA000000000021 /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000020 /* LaunchAtLoginService.swift */; };
+		AA000000000070 /* ValetConfigReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000006F /* ValetConfigReader.swift */; };
+		AA000000000072 /* WordPressInstallerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000071 /* WordPressInstallerService.swift */; };
+		AA000000000074 /* NewSiteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000073 /* NewSiteView.swift */; };
+		AA000000000076 /* EditorOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000075 /* EditorOption.swift */; };
+		AA000000000078 /* TerminalOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000077 /* TerminalOption.swift */; };
+		AA00000000007A /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000079 /* PreferencesView.swift */; };
+		AA00000000007C /* GeneralPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000007B /* GeneralPrefsView.swift */; };
+		AA00000000007E /* EditorPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000007D /* EditorPrefsView.swift */; };
+		AA000000000080 /* TerminalPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000007F /* TerminalPrefsView.swift */; };
+		AA000000000082 /* ValetPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000081 /* ValetPrefsView.swift */; };
+		AA000000000084 /* SiteDeleterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000085 /* SiteDeleterService.swift */; };
+		AA000000000086 /* DeleteSiteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000087 /* DeleteSiteView.swift */; };
+		AA000000000023 /* ValetParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000022 /* ValetParser.swift */; };
+		AA000000000025 /* BrewParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000024 /* BrewParser.swift */; };
+		AA000000000027 /* ServiceParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000026 /* ServiceParser.swift */; };
+		AA000000000029 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000028 /* AppViewModel.swift */; };
+		AA00000000002B /* SitesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000002A /* SitesViewModel.swift */; };
+		AA00000000002D /* PHPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000002C /* PHPViewModel.swift */; };
+		AA00000000002F /* ServicesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000002E /* ServicesViewModel.swift */; };
+		AA000000000031 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000030 /* SettingsViewModel.swift */; };
+		AA000000000033 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000032 /* MenuContentView.swift */; };
+		AA000000000035 /* StatusHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000034 /* StatusHeaderView.swift */; };
+		AA000000000037 /* SitesMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000036 /* SitesMenuView.swift */; };
+		AA000000000039 /* SiteRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000038 /* SiteRowView.swift */; };
+		AA00000000003B /* PHPMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000003A /* PHPMenuView.swift */; };
+		AA00000000003D /* ServicesMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000003C /* ServicesMenuView.swift */; };
+		AA00000000003F /* LogsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000003E /* LogsMenuView.swift */; };
+		AA000000000041 /* SettingsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000040 /* SettingsMenuView.swift */; };
+		AA000000000043 /* OnboardingMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000042 /* OnboardingMenuView.swift */; };
+		AA000000000045 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000044 /* AppConstants.swift */; };
+		AA000000000047 /* String+Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000046 /* String+Shell.swift */; };
+		AA000000000049 /* NSWorkspace+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000048 /* NSWorkspace+Helpers.swift */; };
+		AA000000000090 /* WordPressLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000091 /* WordPressLogo.swift */; };
+		AA000000000092 /* wordpress-logo.svg in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000093 /* wordpress-logo.svg */; };
+		AA000000000094 /* SubdomainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000095 /* SubdomainService.swift */; };
+		AA000000000098 /* WPConfigService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000099 /* WPConfigService.swift */; };
+		AA000000000096 /* SubdomainManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000097 /* SubdomainManagerView.swift */; };
+		AA00000000004B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA00000000004A /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA000000000001 /* ValetUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ValetUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000000000010 /* ValetUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetUIApp.swift; sourceTree = "<group>"; };
+		AA000000000012 /* Site.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Site.swift; sourceTree = "<group>"; };
+		AA000000000014 /* PHPVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHPVersion.swift; sourceTree = "<group>"; };
+		AA000000000016 /* ServiceStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceStatus.swift; sourceTree = "<group>"; };
+		AA000000000018 /* ValetStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetStatus.swift; sourceTree = "<group>"; };
+		AA00000000001A /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		AA00000000001C /* ShellCommandResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellCommandResult.swift; sourceTree = "<group>"; };
+		AA00000000001E /* ShellCommandService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellCommandService.swift; sourceTree = "<group>"; };
+		AA000000000020 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
+		AA00000000006F /* ValetConfigReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetConfigReader.swift; sourceTree = "<group>"; };
+		AA000000000071 /* WordPressInstallerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordPressInstallerService.swift; sourceTree = "<group>"; };
+		AA000000000073 /* NewSiteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSiteView.swift; sourceTree = "<group>"; };
+		AA000000000075 /* EditorOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EditorOption.swift; path = ValetUI/Models/EditorOption.swift; sourceTree = SOURCE_ROOT; };
+		AA000000000077 /* TerminalOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TerminalOption.swift; path = ValetUI/Models/TerminalOption.swift; sourceTree = SOURCE_ROOT; };
+		AA000000000079 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PreferencesView.swift; path = ValetUI/Views/Preferences/PreferencesView.swift; sourceTree = SOURCE_ROOT; };
+		AA00000000007B /* GeneralPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GeneralPrefsView.swift; path = ValetUI/Views/Preferences/GeneralPrefsView.swift; sourceTree = SOURCE_ROOT; };
+		AA00000000007D /* EditorPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EditorPrefsView.swift; path = ValetUI/Views/Preferences/EditorPrefsView.swift; sourceTree = SOURCE_ROOT; };
+		AA00000000007F /* TerminalPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TerminalPrefsView.swift; path = ValetUI/Views/Preferences/TerminalPrefsView.swift; sourceTree = SOURCE_ROOT; };
+		AA000000000081 /* ValetPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ValetPrefsView.swift; path = ValetUI/Views/Preferences/ValetPrefsView.swift; sourceTree = SOURCE_ROOT; };
+		AA000000000085 /* SiteDeleterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteDeleterService.swift; sourceTree = "<group>"; };
+		AA000000000087 /* DeleteSiteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteSiteView.swift; sourceTree = "<group>"; };
+		AA000000000079 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		AA00000000007B /* GeneralPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralPrefsView.swift; sourceTree = "<group>"; };
+		AA00000000007D /* EditorPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorPrefsView.swift; sourceTree = "<group>"; };
+		AA00000000007F /* TerminalPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalPrefsView.swift; sourceTree = "<group>"; };
+		AA000000000081 /* ValetPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetPrefsView.swift; sourceTree = "<group>"; };
+		AA000000000022 /* ValetParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetParser.swift; sourceTree = "<group>"; };
+		AA000000000024 /* BrewParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewParser.swift; sourceTree = "<group>"; };
+		AA000000000026 /* ServiceParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceParser.swift; sourceTree = "<group>"; };
+		AA000000000028 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
+		AA00000000002A /* SitesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SitesViewModel.swift; sourceTree = "<group>"; };
+		AA00000000002C /* PHPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHPViewModel.swift; sourceTree = "<group>"; };
+		AA00000000002E /* ServicesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesViewModel.swift; sourceTree = "<group>"; };
+		AA000000000030 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		AA000000000032 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
+		AA000000000034 /* StatusHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusHeaderView.swift; sourceTree = "<group>"; };
+		AA000000000036 /* SitesMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SitesMenuView.swift; sourceTree = "<group>"; };
+		AA000000000038 /* SiteRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteRowView.swift; sourceTree = "<group>"; };
+		AA00000000003A /* PHPMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHPMenuView.swift; sourceTree = "<group>"; };
+		AA00000000003C /* ServicesMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesMenuView.swift; sourceTree = "<group>"; };
+		AA00000000003E /* LogsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsMenuView.swift; sourceTree = "<group>"; };
+		AA000000000040 /* SettingsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMenuView.swift; sourceTree = "<group>"; };
+		AA000000000042 /* OnboardingMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingMenuView.swift; sourceTree = "<group>"; };
+		AA000000000044 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
+		AA000000000046 /* String+Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Shell.swift"; sourceTree = "<group>"; };
+		AA000000000048 /* NSWorkspace+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSWorkspace+Helpers.swift"; sourceTree = "<group>"; };
+		AA000000000091 /* WordPressLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordPressLogo.swift; sourceTree = "<group>"; };
+		AA000000000093 /* wordpress-logo.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "wordpress-logo.svg"; sourceTree = "<group>"; };
+		AA000000000095 /* SubdomainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubdomainService.swift; sourceTree = "<group>"; };
+		AA000000000099 /* WPConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WPConfigService.swift; sourceTree = "<group>"; };
+		AA000000000097 /* SubdomainManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubdomainManagerView.swift; sourceTree = "<group>"; };
+		AA00000000004A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA00000000004C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA00000000004D /* ValetUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ValetUI.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA00000000000B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA00000000000C /* ValetUI */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000005A /* App */,
+				AA00000000005B /* Models */,
+				AA00000000005C /* Services */,
+				AA00000000005D /* Parsers */,
+				AA00000000005E /* ViewModels */,
+				AA00000000005F /* Views */,
+				AA000000000060 /* Utilities */,
+				AA000000000061 /* Resources */,
+			);
+			path = ValetUI;
+			sourceTree = "<group>";
+		};
+		AA00000000000D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000001 /* ValetUI.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA00000000005A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000010 /* ValetUIApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AA00000000005B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000012 /* Site.swift */,
+				AA000000000014 /* PHPVersion.swift */,
+				AA000000000016 /* ServiceStatus.swift */,
+				AA000000000018 /* ValetStatus.swift */,
+				AA00000000001A /* AppSettings.swift */,
+				AA00000000001C /* ShellCommandResult.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AA00000000005C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000001E /* ShellCommandService.swift */,
+				AA000000000020 /* LaunchAtLoginService.swift */,
+				AA00000000006F /* ValetConfigReader.swift */,
+				AA000000000071 /* WordPressInstallerService.swift */,
+				AA000000000085 /* SiteDeleterService.swift */,
+				AA000000000095 /* SubdomainService.swift */,
+				AA000000000099 /* WPConfigService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		AA00000000005D /* Parsers */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000022 /* ValetParser.swift */,
+				AA000000000024 /* BrewParser.swift */,
+				AA000000000026 /* ServiceParser.swift */,
+			);
+			path = Parsers;
+			sourceTree = "<group>";
+		};
+		AA00000000005E /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000028 /* AppViewModel.swift */,
+				AA00000000002A /* SitesViewModel.swift */,
+				AA00000000002C /* PHPViewModel.swift */,
+				AA00000000002E /* ServicesViewModel.swift */,
+				AA000000000030 /* SettingsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		AA00000000005F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000032 /* MenuContentView.swift */,
+				AA000000000034 /* StatusHeaderView.swift */,
+				AA000000000036 /* SitesMenuView.swift */,
+				AA000000000038 /* SiteRowView.swift */,
+				AA00000000003A /* PHPMenuView.swift */,
+				AA00000000003C /* ServicesMenuView.swift */,
+				AA00000000003E /* LogsMenuView.swift */,
+				AA000000000040 /* SettingsMenuView.swift */,
+				AA000000000042 /* OnboardingMenuView.swift */,
+				AA000000000073 /* NewSiteView.swift */,
+				AA000000000087 /* DeleteSiteView.swift */,
+				AA000000000097 /* SubdomainManagerView.swift */,
+				AA000000000083 /* Preferences */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AA000000000060 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000044 /* AppConstants.swift */,
+				AA000000000091 /* WordPressLogo.swift */,
+				AA000000000063 /* Extensions */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		AA000000000083 /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000079 /* PreferencesView.swift */,
+				AA00000000007B /* GeneralPrefsView.swift */,
+				AA00000000007D /* EditorPrefsView.swift */,
+				AA00000000007F /* TerminalPrefsView.swift */,
+				AA000000000081 /* ValetPrefsView.swift */,
+			);
+			path = Preferences;
+			sourceTree = "<group>";
+		};
+		AA000000000061 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000004A /* Assets.xcassets */,
+				AA00000000004C /* Info.plist */,
+				AA00000000004D /* ValetUI.entitlements */,
+				AA000000000093 /* wordpress-logo.svg */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		AA000000000062 = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000C /* ValetUI */,
+				AA00000000000D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA000000000063 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000046 /* String+Shell.swift */,
+				AA000000000048 /* NSWorkspace+Helpers.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA000000000002 /* ValetUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA000000000004 /* Build configuration list for PBXNativeTarget "ValetUI" */;
+			buildPhases = (
+				AA000000000009 /* Sources */,
+				AA00000000000B /* Frameworks */,
+				AA00000000000A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ValetUI;
+			productName = ValetUI;
+			productReference = AA000000000001 /* ValetUI.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA000000000000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					AA000000000002 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = AA000000000003 /* Build configuration list for PBXProject "ValetUI" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA000000000062;
+			productRefGroup = AA00000000000D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA000000000002 /* ValetUI */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA00000000000A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000004B /* Assets.xcassets in Resources */,
+				AA000000000092 /* wordpress-logo.svg in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA000000000009 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000011 /* ValetUIApp.swift in Sources */,
+				AA000000000013 /* Site.swift in Sources */,
+				AA000000000015 /* PHPVersion.swift in Sources */,
+				AA000000000017 /* ServiceStatus.swift in Sources */,
+				AA000000000019 /* ValetStatus.swift in Sources */,
+				AA00000000001B /* AppSettings.swift in Sources */,
+				AA00000000001D /* ShellCommandResult.swift in Sources */,
+				AA00000000001F /* ShellCommandService.swift in Sources */,
+				AA000000000021 /* LaunchAtLoginService.swift in Sources */,
+				AA000000000070 /* ValetConfigReader.swift in Sources */,
+				AA000000000072 /* WordPressInstallerService.swift in Sources */,
+				AA000000000074 /* NewSiteView.swift in Sources */,
+				AA000000000076 /* EditorOption.swift in Sources */,
+				AA000000000078 /* TerminalOption.swift in Sources */,
+				AA00000000007A /* PreferencesView.swift in Sources */,
+				AA00000000007C /* GeneralPrefsView.swift in Sources */,
+				AA00000000007E /* EditorPrefsView.swift in Sources */,
+				AA000000000080 /* TerminalPrefsView.swift in Sources */,
+				AA000000000082 /* ValetPrefsView.swift in Sources */,
+				AA000000000084 /* SiteDeleterService.swift in Sources */,
+				AA000000000086 /* DeleteSiteView.swift in Sources */,
+				AA000000000094 /* SubdomainService.swift in Sources */,
+				AA000000000096 /* SubdomainManagerView.swift in Sources */,
+				AA000000000098 /* WPConfigService.swift in Sources */,
+				AA000000000023 /* ValetParser.swift in Sources */,
+				AA000000000025 /* BrewParser.swift in Sources */,
+				AA000000000027 /* ServiceParser.swift in Sources */,
+				AA000000000029 /* AppViewModel.swift in Sources */,
+				AA00000000002B /* SitesViewModel.swift in Sources */,
+				AA00000000002D /* PHPViewModel.swift in Sources */,
+				AA00000000002F /* ServicesViewModel.swift in Sources */,
+				AA000000000031 /* SettingsViewModel.swift in Sources */,
+				AA000000000033 /* MenuContentView.swift in Sources */,
+				AA000000000035 /* StatusHeaderView.swift in Sources */,
+				AA000000000037 /* SitesMenuView.swift in Sources */,
+				AA000000000039 /* SiteRowView.swift in Sources */,
+				AA00000000003B /* PHPMenuView.swift in Sources */,
+				AA00000000003D /* ServicesMenuView.swift in Sources */,
+				AA00000000003F /* LogsMenuView.swift in Sources */,
+				AA000000000041 /* SettingsMenuView.swift in Sources */,
+				AA000000000043 /* OnboardingMenuView.swift in Sources */,
+				AA000000000045 /* AppConstants.swift in Sources */,
+				AA000000000047 /* String+Shell.swift in Sources */,
+				AA000000000049 /* NSWorkspace+Helpers.swift in Sources */,
+				AA000000000090 /* WordPressLogo.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		AA000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = ValetUI/Resources/ValetUI.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ValetUI/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ValetUI;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.valetui.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		AA000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = ValetUI/Resources/ValetUI.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ValetUI/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ValetUI;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.valetui.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA000000000003 /* Build configuration list for PBXProject "ValetUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA000000000005 /* Debug */,
+				AA000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA000000000004 /* Build configuration list for PBXNativeTarget "ValetUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA000000000007 /* Debug */,
+				AA000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA000000000000 /* Project object */;
+}
