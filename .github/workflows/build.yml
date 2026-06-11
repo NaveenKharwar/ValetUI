@@ -30,6 +30,15 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || cat
 
+      - name: Unit Tests
+        run: |
+          xcodebuild test \
+            -project ValetUI.xcodeproj \
+            -scheme ValetUI \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || cat
+
       - name: Build (Release)
         run: |
           xcodebuild build \
