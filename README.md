@@ -9,12 +9,18 @@ A native macOS menu bar app for [Laravel Valet](https://laravel.com/docs/valet) 
 - **Live status** — green/red indicator shows whether Valet is running
 - **Sites management** — lists all linked and parked sites; open in browser, Finder, copy URL, toggle HTTPS
 - **PHP switcher** — detects installed Homebrew PHP versions, switch with one click
+- **Per-site PHP** — isolate a site to a specific PHP version (`valet isolate`) from the site menu
+- **Subdomain manager** — Valet serves any subdomain natively; ValetUI tracks yours, enables per-subdomain HTTPS, checks reachability, and fixes WordPress URL handling (with automatic wp-config.php backup)
+- **Share publicly** — one click opens a tunnel via `valet share` (ngrok, cloudflared, or Expose), with preflight checks for missing tools or tokens
 - **Services control** — restart Valet, Nginx, PHP-FPM, DNSMasq
-- **Quick log access** — open Valet/Nginx/PHP logs in Console.app
+- **Log viewer** — live in-app tail of Valet/Nginx/PHP logs, with one-click Console.app handoff
+- **WordPress site creator** — scaffold a full local WordPress install (directory, database, wp-config, admin user) via WP-CLI
 - **Launch at Login** — via native ServiceManagement (no helper bundle)
-- **Auto-refresh** — background polling at 5s / 15s / 30s / 1m intervals
+- **Always fresh** — data refreshes every time the menu opens; optional background polling for the status icon
 - **Onboarding** — detects missing Homebrew, Valet, or PHP with setup links
 - **Dark mode** — automatic, native macOS appearance
+
+Works on Apple Silicon and Intel Macs (Homebrew prefix auto-detected).
 
 ## Requirements
 
@@ -71,6 +77,25 @@ Once installed, open ValetUI and click **Check Again** in the menu — it will c
 
 ---
 
+### Optional — public sharing
+
+`valet share` needs a tunnel tool configured once. Pick one:
+
+```bash
+# Cloudflare quick tunnels — no account needed
+brew install cloudflared && valet share-tool cloudflared
+
+# or ngrok
+brew install ngrok && valet share-tool ngrok
+
+# or Expose (requires a free expose.dev account + token)
+composer global require beyondcode/expose
+expose token <YOUR-TOKEN>
+valet share-tool expose
+```
+
+---
+
 ## Installation
 
 ### Build from Source
@@ -108,6 +133,18 @@ xcodebuild archive \
   -archivePath ./build/ValetUI.xcarchive
 ```
 
+## Testing
+
+```bash
+xcodebuild test \
+  -project ValetUI.xcodeproj \
+  -scheme ValetUI \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+The `ValetUITests` target is a standalone unit-test bundle (no app host, runs unsigned in CI). It covers the parsers (`BrewParser`, `ServiceParser`, `ValetParser`), site-name validation, log tailing, and the wp-config.php patcher. CI runs the suite on every push and PR — see `.github/workflows/build.yml`.
+
 ## Distribution (macOS App Signing)
 
 1. **Sign**: Set your Apple Developer Team ID in Xcode or `DEVELOPMENT_TEAM` env var
@@ -122,18 +159,25 @@ See `.github/workflows/release.yml` for the full automated pipeline.
 
 ```
 ValetUI/
-├── App/            @main entry, MenuBarExtra scene
+├── App/            @main entry, MenuBarExtra + window scenes
 ├── Models/         Plain Swift value types (Site, PHPVersion, …)
-├── Services/       ShellCommandService (actor), LaunchAtLoginService
-├── Parsers/        ValetParser, BrewParser, ServiceParser
-├── ViewModels/     @Observable @MainActor classes
-├── Views/          SwiftUI menu views
-└── Utilities/      Constants, extensions
+├── Services/       ShellCommandService (actor), ValetConfigReader,
+│                   SubdomainService, WPConfigService, installers
+├── Parsers/        ValetParser, BrewParser, ServiceParser (pure, tested)
+├── ViewModels/     AppViewModel (status, sites, orchestration) +
+│                   PHPViewModel / ServicesViewModel (domain state & actions)
+├── Views/          SwiftUI menu views, log viewer, subdomain manager
+└── Utilities/      Constants, LogTailer, extensions
+ValetUITests/       Standalone unit-test bundle
 ```
 
-- **Shell execution**: `Process()` with explicit `executableURL` + `arguments` array — no shell injection risk
-- **Concurrency**: Swift 6 strict mode; `actor` for shell service, `@MainActor` for all UI state
-- **Auto-refresh**: `Task` + `Task.sleep` loop (no `Timer` retain cycle issues)
+- **Shell execution**: `Process()` with explicit `executableURL` + `arguments` array — no shell injection risk; pipes drained concurrently and exit awaited via `terminationHandler` (no 64KB pipe deadlock, no blocked threads)
+- **Defense in depth**: site names validated (`Site.isValidName`) before reaching SQL identifiers, AppleScript, or Terminal commands; MySQL passwords passed via `MYSQL_PWD` env var, never argv
+- **Read, don't shell**: Valet state (sites, TLD, certs, PHP isolation) comes from `~/.config/valet/` files directly — subprocesses only where unavoidable
+- **Subdomains**: Valet serves them natively (DnsMasq wildcard + server.php fallback) — ValetUI keeps a registry in Application Support and adds HTTPS, reachability checks, and WordPress URL fixes on top
+- **sudo-required commands** (`valet secure/unsecure/isolate/share`): opened in Terminal via AppleScript — the app never asks for your password
+- **Concurrency**: Swift 6 strict mode; `actor` for shell service, `@Observable @MainActor` for all UI state
+- **Refresh model**: on every menu open, plus optional background polling for the status icon
 - **Launch at Login**: `SMAppService.mainApp` (ServiceManagement framework, macOS 13+)
 
 ## Contributing
