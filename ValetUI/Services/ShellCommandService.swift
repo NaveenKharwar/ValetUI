@@ -21,17 +21,26 @@ actor ShellCommandService {
     func execute(
         _ executablePath: String,
         arguments: [String] = [],
-        timeout: TimeInterval = 30
+        timeout: TimeInterval = 30,
+        extraEnvironment: [String: String] = [:]
     ) async -> ShellCommandResult {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executablePath)
         process.arguments = arguments
-        process.environment = environment
+        process.environment = environment.merging(extraEnvironment) { _, new in new }
 
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
+
+        // Termination handler must be installed before run() so an early exit
+        // is never missed; AsyncStream buffers the event until we await it.
+        let (exitStream, exitContinuation) = AsyncStream<Void>.makeStream()
+        process.terminationHandler = { _ in
+            exitContinuation.yield()
+            exitContinuation.finish()
+        }
 
         do {
             try process.run()
@@ -47,12 +56,17 @@ actor ShellCommandService {
             }
         }
 
-        process.waitUntilExit()
+        // Drain both pipes while the process runs — if output exceeds the 64KB
+        // pipe buffer, the child blocks on write and never exits otherwise.
+        async let stdoutData = Self.drain(stdoutPipe.fileHandleForReading)
+        async let stderrData = Self.drain(stderrPipe.fileHandleForReading)
+
+        for await _ in exitStream {}
         timeoutTask.cancel()
 
-        let stdout = String(data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
+        let stdout = String(data: await stdoutData, encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let stderr = String(data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
+        let stderr = String(data: await stderrData, encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         return ShellCommandResult(
@@ -60,6 +74,19 @@ actor ShellCommandService {
             stderr: stderr,
             exitCode: process.terminationStatus
         )
+    }
+
+    /// Read a pipe to EOF without blocking a cooperative-pool thread.
+    private static func drain(_ handle: FileHandle) async -> Data {
+        var data = Data()
+        do {
+            for try await byte in handle.bytes {
+                data.append(byte)
+            }
+        } catch {
+            // Reading error — return whatever was collected
+        }
+        return data
     }
 
     // Convenience: run via /bin/sh for piped commands only when truly needed.
