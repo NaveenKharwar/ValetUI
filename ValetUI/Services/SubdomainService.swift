@@ -5,154 +5,166 @@ struct Subdomain: Identifiable, Hashable, Sendable {
     let prefix: String       // "fr"
     let siteName: String     // "mysite"
     let tld: String          // "test"
-    let nginxConfigPath: String
     let isSecured: Bool
 
     var fullDomain: String { "\(prefix).\(siteName).\(tld)" }
     var url: String { (isSecured ? "https" : "http") + "://\(fullDomain)" }
+    /// The name valet commands use: `valet secure fr.mysite`
+    var valetSiteName: String { "\(prefix).\(siteName)" }
 
-    init(prefix: String, siteName: String, tld: String, nginxConfigPath: String, isSecured: Bool) {
+    init(prefix: String, siteName: String, tld: String, isSecured: Bool) {
         self.id = UUID()
         self.prefix = prefix
         self.siteName = siteName
         self.tld = tld
-        self.nginxConfigPath = nginxConfigPath
         self.isSecured = isSecured
     }
 }
 
+/// Valet serves `anything.site.test` natively (DnsMasq wildcard + server.php
+/// host fallback) — no Nginx config is needed to make a subdomain work.
+/// This service only TRACKS which subdomains the user cares about, plus what
+/// Valet can't do alone: per-subdomain HTTPS and WordPress URL handling.
 actor SubdomainService {
     static let shared = SubdomainService()
     private init() {}
 
-    private let shell = ShellCommandService.shared
-    private let nginxDir = (NSHomeDirectory() as NSString).appendingPathComponent(".config/valet/Nginx")
     private let certsDir = (NSHomeDirectory() as NSString).appendingPathComponent(".config/valet/Certificates")
+    private let nginxDir = (NSHomeDirectory() as NSString).appendingPathComponent(".config/valet/Nginx")
+
+    // MARK: - Registry
+
+    private var registryURL: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ValetUI", isDirectory: true)
+        try? FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
+        return appSupport.appendingPathComponent("subdomains.json")
+    }
+
+    /// site key "mysite.test" → sorted prefixes
+    private func loadRegistry() -> [String: [String]] {
+        guard let data = try? Data(contentsOf: registryURL),
+              let registry = try? JSONDecoder().decode([String: [String]].self, from: data) else {
+            return [:]
+        }
+        return registry
+    }
+
+    private func saveRegistry(_ registry: [String: [String]]) {
+        guard let data = try? JSONEncoder().encode(registry) else { return }
+        try? data.write(to: registryURL)
+    }
 
     // MARK: - List
 
     func listSubdomains(for site: Site) -> [Subdomain] {
-        let fm = FileManager.default
-        guard let files = try? fm.contentsOfDirectory(atPath: nginxDir) else { return [] }
+        migrateLegacyConfigs(for: site)
 
-        let suffix = ".\(site.name).\(site.tld)"
-        return files
-            .filter { $0.hasSuffix(suffix) && $0 != "\(site.name).\(site.tld)" }
-            .compactMap { filename -> Subdomain? in
-                let prefix = String(filename.dropLast(suffix.count))
-                guard !prefix.isEmpty, !prefix.contains(".") else { return nil }
-                let configPath = (nginxDir as NSString).appendingPathComponent(filename)
-                let certPath = (certsDir as NSString).appendingPathComponent("\(filename).crt")
-                let secured = fm.fileExists(atPath: certPath)
-                return Subdomain(
-                    prefix: prefix,
-                    siteName: site.name,
-                    tld: site.tld,
-                    nginxConfigPath: configPath,
-                    isSecured: secured
-                )
+        let siteKey = "\(site.name).\(site.tld)"
+        var prefixes = Set(loadRegistry()[siteKey] ?? [])
+
+        // Pick up subdomains secured outside the app (valet secure fr.mysite):
+        // their certs live in the Certificates dir
+        let certSuffix = ".\(site.name).\(site.tld).crt"
+        if let certs = try? FileManager.default.contentsOfDirectory(atPath: certsDir) {
+            for cert in certs where cert.hasSuffix(certSuffix) {
+                let prefix = String(cert.dropLast(certSuffix.count))
+                if !prefix.isEmpty && !prefix.contains(".") {
+                    prefixes.insert(prefix)
+                }
             }
-            .sorted { $0.prefix < $1.prefix }
+        }
+
+        return prefixes.sorted().map { prefix in
+            Subdomain(
+                prefix: prefix,
+                siteName: site.name,
+                tld: site.tld,
+                isSecured: FileManager.default.fileExists(
+                    atPath: "\(certsDir)/\(prefix).\(site.name).\(site.tld).crt"
+                )
+            )
+        }
     }
 
-    // MARK: - Add
+    // MARK: - Add / Remove
 
-    func addSubdomain(prefix: String, site: Site) async throws {
-        let cleanPrefix = prefix.lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
-
-        guard !cleanPrefix.isEmpty else {
+    @discardableResult
+    func addSubdomain(prefix: String, site: Site) throws -> Subdomain {
+        guard let cleanPrefix = Self.cleanPrefix(prefix) else {
             throw SubdomainError.invalidPrefix
         }
 
-        let fullDomain = "\(cleanPrefix).\(site.name).\(site.tld)"
-        let configPath = (nginxDir as NSString).appendingPathComponent(fullDomain)
+        let siteKey = "\(site.name).\(site.tld)"
+        var registry = loadRegistry()
+        var prefixes = registry[siteKey] ?? []
 
-        guard !FileManager.default.fileExists(atPath: configPath) else {
-            throw SubdomainError.alreadyExists(fullDomain)
+        guard !prefixes.contains(cleanPrefix) else {
+            throw SubdomainError.alreadyExists("\(cleanPrefix).\(siteKey)")
         }
 
-        let phpSocket = detectPHPSocket()
-        let config = nginxConfig(
-            serverName: fullDomain,
-            root: site.path,
-            phpSocket: phpSocket
-        )
+        prefixes.append(cleanPrefix)
+        registry[siteKey] = prefixes.sorted()
+        saveRegistry(registry)
 
-        try config.write(toFile: configPath, atomically: true, encoding: .utf8)
-        await reloadNginx()
+        return Subdomain(prefix: cleanPrefix, siteName: site.name, tld: site.tld, isSecured: false)
     }
 
-    // MARK: - Remove
-
-    func removeSubdomain(_ subdomain: Subdomain) async throws {
-        try FileManager.default.removeItem(atPath: subdomain.nginxConfigPath)
-
-        // Also remove certs if they exist
-        let certBase = (certsDir as NSString).appendingPathComponent(subdomain.fullDomain)
-        try? FileManager.default.removeItem(atPath: certBase + ".crt")
-        try? FileManager.default.removeItem(atPath: certBase + ".key")
-        try? FileManager.default.removeItem(atPath: certBase + ".csr")
-
-        await reloadNginx()
+    func removeSubdomain(_ subdomain: Subdomain) {
+        let siteKey = "\(subdomain.siteName).\(subdomain.tld)"
+        var registry = loadRegistry()
+        registry[siteKey] = (registry[siteKey] ?? []).filter { $0 != subdomain.prefix }
+        if registry[siteKey]?.isEmpty == true {
+            registry[siteKey] = nil
+        }
+        saveRegistry(registry)
     }
 
-    // MARK: - Reload Nginx
-
-    func reloadNginx() async {
-        _ = await shell.execute(
-            "/opt/homebrew/bin/brew",
-            arguments: ["services", "reload", "nginx"],
-            timeout: 15
-        )
+    /// Lowercased letters, digits, hyphens. Nil when nothing valid remains.
+    static func cleanPrefix(_ raw: String) -> String? {
+        let cleaned = raw.lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .filter { ($0.isASCII && ($0.isLetter || $0.isNumber)) || $0 == "-" }
+        return cleaned.isEmpty ? nil : cleaned
     }
 
-    // MARK: - Helpers
+    // MARK: - Legacy migration
 
-    func detectPHPSocket() -> String {
-        let runDir = "/opt/homebrew/var/run/php"
+    /// Pre-registry versions wrote custom Nginx configs per subdomain. They
+    /// duplicate Valet's native wildcard routing and break when the PHP socket
+    /// moves — import their prefixes into the registry and delete the files.
+    /// Valet-written configs (from `valet secure`) are left untouched.
+    private func migrateLegacyConfigs(for site: Site) {
         let fm = FileManager.default
-        if let files = try? fm.contentsOfDirectory(atPath: runDir) {
-            let socks = files
-                .filter { $0.hasPrefix("php") && $0.hasSuffix("-fpm.sock") }
-                .sorted()
-                .reversed()
-            if let best = socks.first {
-                return "\(runDir)/\(best)"
+        guard let files = try? fm.contentsOfDirectory(atPath: nginxDir) else { return }
+
+        let suffix = ".\(site.name).\(site.tld)"
+        let siteKey = "\(site.name).\(site.tld)"
+        var registry = loadRegistry()
+        var prefixes = Set(registry[siteKey] ?? [])
+        var changed = false
+
+        for filename in files where filename.hasSuffix(suffix) && filename != siteKey {
+            let prefix = String(filename.dropLast(suffix.count))
+            guard !prefix.isEmpty, !prefix.contains(".") else { continue }
+
+            let path = (nginxDir as NSString).appendingPathComponent(filename)
+            guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { continue }
+
+            // Our old template pointed fastcgi at the brew php-fpm socket;
+            // valet's own configs route through valet.sock / server.php
+            let isLegacyValetUIConfig = content.contains("/var/run/php/") && !content.contains("valet.sock")
+            if isLegacyValetUIConfig {
+                prefixes.insert(prefix)
+                try? fm.removeItem(atPath: path)
+                changed = true
             }
         }
-        return "/opt/homebrew/var/run/php/php-fpm.sock"
-    }
 
-    private func nginxConfig(serverName: String, root: String, phpSocket: String) -> String {
-        return """
-server {
-    listen 80;
-    server_name \(serverName);
-    root "\(root)";
-    index index.php index.html index.htm;
-
-    access_log off;
-    error_log /dev/null;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location ~ \\.php$ {
-        fastcgi_split_path_info ^(.+\\.php)(/.+)$;
-        fastcgi_pass unix:\(phpSocket);
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location ~ /\\.ht {
-        deny all;
-    }
-}
-"""
+        if changed {
+            registry[siteKey] = prefixes.sorted()
+            saveRegistry(registry)
+        }
     }
 }
 

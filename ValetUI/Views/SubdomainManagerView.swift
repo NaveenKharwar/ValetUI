@@ -9,6 +9,8 @@ final class SubdomainManagerViewModel {
     var successMessage: String?
     var wpConfigMode: WPConfigService.URLMode = .notDefined
     var isWordPressSite = false
+    /// prefix → reachable; missing key = check pending
+    var reachability: [String: Bool] = [:]
 
     private let service = SubdomainService.shared
 
@@ -18,14 +20,15 @@ final class SubdomainManagerViewModel {
         isWordPressSite = WPConfigService.isWordPressSite(at: site.path)
         wpConfigMode = WPConfigService.detectURLMode(at: site.path)
         isLoading = false
+        await checkReachability()
     }
 
     func add(prefix: String, site: Site) async {
         errorMessage = nil
         successMessage = nil
         do {
-            try await service.addSubdomain(prefix: prefix, site: site)
-            successMessage = "\(prefix).\(site.name).\(site.tld) added"
+            let subdomain = try await service.addSubdomain(prefix: prefix, site: site)
+            successMessage = "\(subdomain.fullDomain) added — Valet serves it instantly, no config needed"
             await load(site: site)
         } catch {
             errorMessage = error.localizedDescription
@@ -35,13 +38,16 @@ final class SubdomainManagerViewModel {
     func remove(_ subdomain: Subdomain, site: Site) async {
         errorMessage = nil
         successMessage = nil
-        do {
-            try await service.removeSubdomain(subdomain)
-            successMessage = "\(subdomain.fullDomain) removed"
-            await load(site: site)
-        } catch {
-            errorMessage = error.localizedDescription
+
+        // Secured subdomains have a cert + valet config + Sites symlink —
+        // valet unsecure must clean those up (needs sudo, hence Terminal)
+        if subdomain.isSecured {
+            openTerminalToUnsecure(subdomain, removeAfter: true)
         }
+
+        await service.removeSubdomain(subdomain)
+        successMessage = "\(subdomain.fullDomain) removed"
+        await load(site: site)
     }
 
     func applyWPConfigFix(site: Site) {
@@ -50,7 +56,7 @@ final class SubdomainManagerViewModel {
         let result = WPConfigService.applyDynamicURLFix(at: site.path)
         switch result {
         case .success:
-            successMessage = "✓ wp-config.php updated — subdomains will work correctly"
+            successMessage = "✓ wp-config.php updated (backup saved as wp-config.php.valetui-backup)"
             wpConfigMode = WPConfigService.detectURLMode(at: site.path)
         case .alreadyDynamic:
             wpConfigMode = WPConfigService.detectURLMode(at: site.path)
@@ -61,39 +67,85 @@ final class SubdomainManagerViewModel {
         }
     }
 
-    func secureSubdomain(_ subdomain: Subdomain) {
-        let terminal = AppSettings.shared.resolvedTerminal
-            ?? TerminalOption.all.first { $0.id == "terminal" }
+    // MARK: - HTTPS
 
-        guard let terminal else {
-            errorMessage = "No terminal found. Run manually: valet secure \(subdomain.prefix).\(subdomain.siteName)"
+    func secureSubdomain(_ subdomain: Subdomain, site: Site) {
+        errorMessage = nil
+        successMessage = nil
+
+        guard Site.isValidName(subdomain.valetSiteName) else {
+            errorMessage = "Unsupported name — run manually: valet secure \(subdomain.valetSiteName)"
+            return
+        }
+        guard let terminal = resolvedTerminal() else {
+            errorMessage = "No terminal found. Run manually: valet secure \(subdomain.valetSiteName)"
             return
         }
 
-        let sitesDir = (NSHomeDirectory() as NSString).appendingPathComponent(".config/valet/Sites")
-        let symlinkPath = (sitesDir as NSString).appendingPathComponent("\(subdomain.prefix).\(subdomain.siteName)")
-        let rootPath = extractRootFromNginxConfig(at: subdomain.nginxConfigPath)
-
-        if let rootPath {
-            try? FileManager.default.createSymbolicLink(atPath: symlinkPath, withDestinationPath: rootPath)
+        // valet secure needs the subdomain to exist as a valet site — link it
+        // to the same root as the parent. The symlink STAYS so a later
+        // unsecure can find the site.
+        let symlinkPath = symlinkPath(for: subdomain)
+        if !FileManager.default.fileExists(atPath: symlinkPath) {
+            try? FileManager.default.createSymbolicLink(atPath: symlinkPath, withDestinationPath: site.path)
         }
 
-        let siteName = "\(subdomain.prefix).\(subdomain.siteName)"
-        let command = rootPath != nil
-            ? "valet secure \(siteName) && echo '✓ HTTPS enabled for \(subdomain.fullDomain)' && rm -f '\(symlinkPath)'"
-            : "valet secure \(siteName)"
-
-        terminal.open(path: NSHomeDirectory(), command: command)
+        terminal.open(path: NSHomeDirectory(), command: "valet secure \(subdomain.valetSiteName)")
         successMessage = "Terminal opened — enabling HTTPS for \(subdomain.fullDomain)"
     }
 
-    private func extractRootFromNginxConfig(at path: String) -> String? {
-        guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { return nil }
-        let pattern = #"root\s+"([^"]+)""#
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: content, range: NSRange(content.startIndex..., in: content)),
-              let range = Range(match.range(at: 1), in: content) else { return nil }
-        return String(content[range])
+    func unsecureSubdomain(_ subdomain: Subdomain) {
+        errorMessage = nil
+        successMessage = nil
+        openTerminalToUnsecure(subdomain, removeAfter: false)
+        successMessage = "Terminal opened — removing HTTPS for \(subdomain.fullDomain)"
+    }
+
+    private func openTerminalToUnsecure(_ subdomain: Subdomain, removeAfter: Bool) {
+        guard Site.isValidName(subdomain.valetSiteName), let terminal = resolvedTerminal() else {
+            errorMessage = "Run manually: valet unsecure \(subdomain.valetSiteName)"
+            return
+        }
+        // After unsecure the symlink has no further purpose — clean it up
+        let symlink = symlinkPath(for: subdomain)
+        let command = "valet unsecure \(subdomain.valetSiteName) && rm -f \"\(symlink)\""
+        terminal.open(path: NSHomeDirectory(), command: command)
+    }
+
+    private func symlinkPath(for subdomain: Subdomain) -> String {
+        let sitesDir = (NSHomeDirectory() as NSString).appendingPathComponent(".config/valet/Sites")
+        return (sitesDir as NSString).appendingPathComponent(subdomain.valetSiteName)
+    }
+
+    private func resolvedTerminal() -> TerminalOption? {
+        AppSettings.shared.resolvedTerminal
+            ?? TerminalOption.all.first { $0.id == "terminal" }
+    }
+
+    // MARK: - Reachability
+
+    func checkReachability() async {
+        let targets = subdomains
+        await withTaskGroup(of: (String, Bool).self) { group in
+            for sub in targets {
+                group.addTask {
+                    guard let url = URL(string: sub.url) else { return (sub.prefix, false) }
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "HEAD"
+                    request.timeoutInterval = 3
+                    do {
+                        let (_, response) = try await URLSession.shared.data(for: request)
+                        // Any HTTP response (even 404/redirect) means nginx answered
+                        return (sub.prefix, response is HTTPURLResponse)
+                    } catch {
+                        return (sub.prefix, false)
+                    }
+                }
+            }
+            for await (prefix, reachable) in group {
+                reachability[prefix] = reachable
+            }
+        }
     }
 }
 
@@ -251,9 +303,9 @@ struct SubdomainManagerView: View {
             Image(systemName: "network")
                 .font(.system(size: 36))
                 .foregroundStyle(.tertiary)
-            Text("No subdomains configured")
+            Text("No subdomains tracked")
                 .font(.headline)
-            Text("Add a subdomain to serve \(site.name).\(site.tld) under a prefix like\n**api.\(site.name).\(site.tld)** or **fr.\(site.name).\(site.tld)**")
+            Text("Valet already serves any subdomain of **\(site.name).\(site.tld)** — try opening one in your browser.\nAdd it here to track it, enable HTTPS, and fix WordPress URLs.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -272,7 +324,9 @@ struct SubdomainManagerView: View {
             ForEach(vm.subdomains) { subdomain in
                 SubdomainRowView(
                     subdomain: subdomain,
-                    onSecure: { vm.secureSubdomain(subdomain) },
+                    reachable: vm.reachability[subdomain.prefix],
+                    onSecure: { vm.secureSubdomain(subdomain, site: site) },
+                    onUnsecure: { vm.unsecureSubdomain(subdomain) },
                     onDelete: { Task { await vm.remove(subdomain, site: site) } }
                 )
                 Divider().padding(.leading, 16)
@@ -294,9 +348,7 @@ struct SubdomainManagerView: View {
                 TextField("e.g. fr, api, staging", text: $newPrefix)
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: newPrefix) { _, val in
-                        newPrefix = val.lowercased()
-                            .replacingOccurrences(of: " ", with: "-")
-                            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
+                        newPrefix = SubdomainService.cleanPrefix(val) ?? ""
                     }
             }
 
@@ -313,7 +365,7 @@ struct SubdomainManagerView: View {
                 .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
             }
 
-            Text("A new Nginx config will be created and Nginx reloaded automatically. The subdomain will point to the same directory as **\(site.name).\(site.tld)**.")
+            Text("Valet serves subdomains of **\(site.name).\(site.tld)** automatically — no server config is created. ValetUI tracks this subdomain so you can enable HTTPS and check reachability.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -344,7 +396,9 @@ struct SubdomainManagerView: View {
 
 private struct SubdomainRowView: View {
     let subdomain: Subdomain
+    let reachable: Bool?
     let onSecure: () -> Void
+    let onUnsecure: () -> Void
     let onDelete: () -> Void
 
     @State private var showDeleteConfirm = false
@@ -357,8 +411,11 @@ private struct SubdomainRowView: View {
                     .frame(width: 16)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(subdomain.fullDomain)
-                        .font(.system(.body, design: .monospaced))
+                    HStack(spacing: 6) {
+                        Text(subdomain.fullDomain)
+                            .font(.system(.body, design: .monospaced))
+                        reachabilityDot
+                    }
                     Text(subdomain.url)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -398,7 +455,9 @@ private struct SubdomainRowView: View {
                     Button("Remove", role: .destructive) { onDelete() }
                     Button("Cancel", role: .cancel) {}
                 } message: {
-                    Text("The Nginx config will be deleted and Nginx reloaded. Site files are not affected.")
+                    Text(subdomain.isSecured
+                         ? "Terminal will open to remove the HTTPS certificate, then the subdomain is untracked. Site files are not affected."
+                         : "The subdomain is untracked. Valet will still serve it — site files are not affected.")
                 }
             }
 
@@ -411,7 +470,12 @@ private struct SubdomainRowView: View {
                     .font(.caption)
                     .foregroundStyle(subdomain.isSecured ? .green : .orange)
                 Spacer()
-                if !subdomain.isSecured {
+                if subdomain.isSecured {
+                    Button("Remove HTTPS") { onUnsecure() }
+                        .font(.caption)
+                        .buttonStyle(.bordered)
+                        .controlSize(.mini)
+                } else {
                     Button("Enable HTTPS") { onSecure() }
                         .font(.caption)
                         .buttonStyle(.bordered)
@@ -424,5 +488,20 @@ private struct SubdomainRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
+    }
+
+    @ViewBuilder
+    private var reachabilityDot: some View {
+        switch reachable {
+        case .some(true):
+            Circle().fill(.green).frame(width: 7, height: 7)
+                .help("Responding")
+        case .some(false):
+            Circle().fill(.red).frame(width: 7, height: 7)
+                .help("Not responding — is Valet running?")
+        case .none:
+            Circle().fill(.gray.opacity(0.4)).frame(width: 7, height: 7)
+                .help("Checking…")
+        }
     }
 }

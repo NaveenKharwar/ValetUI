@@ -30,5 +30,12 @@
 	<string>ValetUI needs to open Terminal to run commands in your site directory.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Reachability checks hit http://*.test (loopback via DnsMasq) — named
+		     hosts that resolve to 127.0.0.1 are not ATS-exempt -->
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

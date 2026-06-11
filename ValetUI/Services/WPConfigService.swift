@@ -23,7 +23,11 @@ enum WPConfigService {
         guard let content = try? String(contentsOfFile: configPath, encoding: .utf8) else {
             return .notDefined
         }
+        return detectURLMode(in: content)
+    }
 
+    /// Pure content check — testable without a filesystem.
+    static func detectURLMode(in content: String) -> URLMode {
         // Already dynamic?
         if content.contains("$_SERVER") &&
            content.contains("WP_HOME") {
@@ -69,7 +73,8 @@ enum WPConfigService {
         case failed(String)
     }
 
-    /// Rewrites WP_HOME and WP_SITEURL in wp-config.php to use dynamic $_SERVER['HTTP_HOST'].
+    /// Rewrites WP_HOME and WP_SITEURL in wp-config.php to use dynamic
+    /// $_SERVER['HTTP_HOST']. A backup is written next to the original first.
     static func applyDynamicURLFix(at sitePath: String) -> FixResult {
         let configPath = (sitePath as NSString).appendingPathComponent("wp-config.php")
 
@@ -77,24 +82,45 @@ enum WPConfigService {
             return .notWordPress
         }
 
-        guard var content = try? String(contentsOfFile: configPath, encoding: .utf8) else {
+        guard let content = try? String(contentsOfFile: configPath, encoding: .utf8) else {
             return .failed("Could not read wp-config.php")
-        }
-
-        // Already patched?
-        if content.contains("$_SERVER['HTTP_HOST']") && content.contains("WP_HOME") {
-            return .alreadyDynamic
         }
 
         // Detect the main site domain from the existing hardcoded value or wp-config path
         let mainDomain: String
-        switch detectURLMode(at: sitePath) {
+        switch detectURLMode(in: content) {
         case .hardcoded(let home, _): mainDomain = home
         default:
             // Derive from site folder name + valet TLD
             let folderName = (sitePath as NSString).lastPathComponent
             let tld = ValetConfigReader.readConfig()?.tld ?? "test"
             mainDomain = "https://\(folderName).\(tld)"
+        }
+
+        guard let patched = patchedContent(content, mainDomain: mainDomain) else {
+            return .alreadyDynamic
+        }
+
+        // Backup before touching the user's config — regex surgery can go wrong
+        let backupPath = configPath + ".valetui-backup"
+        try? FileManager.default.removeItem(atPath: backupPath)
+        try? FileManager.default.copyItem(atPath: configPath, toPath: backupPath)
+
+        do {
+            try patched.write(toFile: configPath, atomically: true, encoding: .utf8)
+            return .success
+        } catch {
+            return .failed(error.localizedDescription)
+        }
+    }
+
+    /// Pure content transformation — nil when the config is already dynamic.
+    /// Removes hardcoded WP_HOME/WP_SITEURL defines and inserts the dynamic
+    /// block before the "stop editing" marker.
+    static func patchedContent(_ content: String, mainDomain: String) -> String? {
+        // Already patched?
+        if content.contains("$_SERVER['HTTP_HOST']") && content.contains("WP_HOME") {
+            return nil
         }
 
         let dynamicBlock = """
@@ -111,6 +137,8 @@ if ( isset( $_SERVER['HTTP_HOST'] ) && $_SERVER['HTTP_HOST'] !== '' ) {
 }
 """
 
+        var result = content
+
         // Remove existing WP_HOME / WP_SITEURL define lines (various formats)
         let patterns = [
             #"(?m)^[^\n]*define\s*\(\s*['"]WP_HOME['"]\s*,\s*['"][^'"]*['"]\s*\)\s*;\n?"#,
@@ -118,8 +146,8 @@ if ( isset( $_SERVER['HTTP_HOST'] ) && $_SERVER['HTTP_HOST'] !== '' ) {
         ]
         for pattern in patterns {
             if let regex = try? NSRegularExpression(pattern: pattern) {
-                let range = NSRange(content.startIndex..., in: content)
-                content = regex.stringByReplacingMatches(in: content, range: range, withTemplate: "")
+                let range = NSRange(result.startIndex..., in: result)
+                result = regex.stringByReplacingMatches(in: result, range: range, withTemplate: "")
             }
         }
 
@@ -132,8 +160,8 @@ if ( isset( $_SERVER['HTTP_HOST'] ) && $_SERVER['HTTP_HOST'] !== '' ) {
         ]
         var inserted = false
         for marker in markers {
-            if let range = content.range(of: marker) {
-                content.insert(contentsOf: dynamicBlock + "\n\n", at: range.lowerBound)
+            if let range = result.range(of: marker) {
+                result.insert(contentsOf: dynamicBlock + "\n\n", at: range.lowerBound)
                 inserted = true
                 break
             }
@@ -141,15 +169,10 @@ if ( isset( $_SERVER['HTTP_HOST'] ) && $_SERVER['HTTP_HOST'] !== '' ) {
 
         if !inserted {
             // Fallback: append before closing
-            content += "\n" + dynamicBlock + "\n"
+            result += "\n" + dynamicBlock + "\n"
         }
 
-        do {
-            try content.write(toFile: configPath, atomically: true, encoding: .utf8)
-            return .success
-        } catch {
-            return .failed(error.localizedDescription)
-        }
+        return result
     }
 
     // MARK: - Helpers
