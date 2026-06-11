@@ -18,7 +18,7 @@ struct StatusHeaderView: View {
             Image(systemName: "chevron.left.forwardslash.chevron.right")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-            Text("PHP \(vm.currentPHP)")
+            Text("PHP \(vm.phpViewModel.currentVersion)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

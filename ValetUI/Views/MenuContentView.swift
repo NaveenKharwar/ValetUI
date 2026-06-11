@@ -18,6 +18,11 @@ struct MenuContentView: View {
         // Status header — non-interactive info rows
         StatusHeaderView()
             .environment(vm)
+            // Menu-style MenuBarExtra builds its content on every open —
+            // refresh here so data is current without constant polling
+            .onAppear {
+                Task { await vm.refresh() }
+            }
 
         Divider()
 
@@ -81,7 +86,7 @@ struct MenuContentView: View {
         .keyboardShortcut("q")
 
         // Error banner (shown as disabled menu item)
-        if let error = vm.lastError {
+        if let error = vm.anyError {
             Divider()
             Text("⚠ \(error)")
                 .font(.caption)

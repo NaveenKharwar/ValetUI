@@ -7,7 +7,7 @@ struct ServicesMenuView: View {
         Menu {
             // Valet-level restart
             Button {
-                Task { await vm.restartValet() }
+                Task { await vm.servicesViewModel.restartValet() }
             } label: {
                 Label("Restart Valet", systemImage: "arrow.clockwise.circle")
             }
@@ -15,26 +15,26 @@ struct ServicesMenuView: View {
             Divider()
 
             // Individual services from brew services list
-            if vm.services.isEmpty {
+            if vm.servicesViewModel.services.isEmpty {
                 Button {
-                    Task { await vm.restartNamedService("nginx") }
+                    Task { await vm.servicesViewModel.restartNamed("nginx") }
                 } label: {
                     Label("Restart Nginx", systemImage: "arrow.clockwise")
                 }
                 Button {
-                    Task { await vm.restartNamedService("php") }
+                    Task { await vm.servicesViewModel.restartNamed("php") }
                 } label: {
                     Label("Restart PHP-FPM", systemImage: "arrow.clockwise")
                 }
                 Button {
-                    Task { await vm.restartNamedService("dnsmasq") }
+                    Task { await vm.servicesViewModel.restartNamed("dnsmasq") }
                 } label: {
                     Label("Restart DNSMasq", systemImage: "arrow.clockwise")
                 }
             } else {
-                ForEach(vm.services) { service in
+                ForEach(vm.servicesViewModel.services) { service in
                     Button {
-                        Task { await vm.restartService(service) }
+                        Task { await vm.servicesViewModel.restart(service) }
                     } label: {
                         HStack {
                             Label(service.displayName, systemImage: "arrow.clockwise")

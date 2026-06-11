@@ -8,11 +8,13 @@ final class AppViewModel {
     // State
     var valetStatus: ValetStatus = .unknown
     var sites: [Site] = []
-    var phpVersions: [PHPVersion] = []
-    var currentPHP: String = "–"
-    var services: [ServiceStatus] = []
     var isRefreshing: Bool = false
     var lastError: String?
+
+    /// First error from any domain — what the menu surfaces
+    var anyError: String? {
+        lastError ?? phpViewModel.lastError ?? servicesViewModel.lastError
+    }
 
     // Dependency detection
     var isBrewInstalled: Bool = true
@@ -21,11 +23,9 @@ final class AppViewModel {
     var isWPCLIInstalled: Bool = true
     var isMySQLInstalled: Bool = true
 
-    // Child VMs
-    let sitesViewModel: SitesViewModel
+    // Child VMs — own their domain state and actions
     let phpViewModel: PHPViewModel
     let servicesViewModel: ServicesViewModel
-    let settingsViewModel: SettingsViewModel
 
     // Auto-refresh
     private var autoRefreshTask: Task<Void, Never>?
@@ -33,10 +33,11 @@ final class AppViewModel {
 
     init(shell: ShellCommandService = .shared) {
         self.shell = shell
-        self.sitesViewModel = SitesViewModel(shell: shell)
         self.phpViewModel = PHPViewModel(shell: shell)
         self.servicesViewModel = ServicesViewModel(shell: shell)
-        self.settingsViewModel = SettingsViewModel()
+
+        phpViewModel.onGlobalRefresh = { [weak self] in await self?.refresh() }
+        servicesViewModel.onGlobalRefresh = { [weak self] in await self?.refresh() }
 
         Task { await checkDependencies() }
         Task { await refresh() }
@@ -54,18 +55,22 @@ final class AppViewModel {
 
         // Status + PHP + services via shell (no valet CLI needed)
         async let statusResult = fetchValetStatus()
-        async let phpResult = fetchPHPInfo()
-        async let servicesResult = fetchServices()
+        async let phpRefresh: Void = phpViewModel.refresh()
+        async let servicesRefresh: Void = servicesViewModel.refresh()
 
-        let (status, phpInfo, fetchedServices) = await (statusResult, phpResult, servicesResult)
-
-        valetStatus = status
-        currentPHP = phpInfo.currentVersion
-        phpVersions = phpInfo.versions
-        services = fetchedServices
+        valetStatus = await statusResult
+        _ = await (phpRefresh, servicesRefresh)
     }
 
     func secureSite(_ site: Site) async {
+        guard Site.isValidName(site.name) else {
+            showAlert(
+                title: "Unsupported site name",
+                message: "\"\(site.name)\" contains characters that can't be passed to Terminal safely. Run valet secure manually.",
+                style: .warning
+            )
+            return
+        }
         // valet secure requires sudo + TTY — must run in Terminal via AppleScript
         let opened = openTerminal(command: "valet secure \(site.name)")
         if opened {
@@ -82,6 +87,14 @@ final class AppViewModel {
     }
 
     func unsecureSite(_ site: Site) async {
+        guard Site.isValidName(site.name) else {
+            showAlert(
+                title: "Unsupported site name",
+                message: "\"\(site.name)\" contains characters that can't be passed to Terminal safely. Run valet unsecure manually.",
+                style: .warning
+            )
+            return
+        }
         let opened = openTerminal(command: "valet unsecure \(site.name)")
         if opened {
             try? await Task.sleep(for: .seconds(3))
@@ -93,6 +106,113 @@ final class AppViewModel {
                 style: .warning
             )
         }
+    }
+
+    func isolateSite(_ site: Site, version: PHPVersion) async {
+        guard Site.isValidName(site.name) else {
+            showAlert(
+                title: "Unsupported site name",
+                message: "\"\(site.name)\" contains characters that can't be passed to Terminal safely. Run valet isolate manually.",
+                style: .warning
+            )
+            return
+        }
+        let opened = openTerminal(command: "valet isolate \(version.brewName) --site=\(site.name)")
+        if opened {
+            try? await Task.sleep(for: .seconds(3))
+            await refresh()
+        } else {
+            showAlert(
+                title: "Could not open Terminal",
+                message: "Please run this command manually:\n\nvalet isolate \(version.brewName) --site=\(site.name)",
+                style: .warning
+            )
+        }
+    }
+
+    func unisolateSite(_ site: Site) async {
+        guard Site.isValidName(site.name) else { return }
+        let opened = openTerminal(command: "valet unisolate --site=\(site.name)")
+        if opened {
+            try? await Task.sleep(for: .seconds(3))
+            await refresh()
+        } else {
+            showAlert(
+                title: "Could not open Terminal",
+                message: "Please run this command manually:\n\nvalet unisolate --site=\(site.name)",
+                style: .warning
+            )
+        }
+    }
+
+    func shareSite(_ site: Site) async {
+        guard Site.isValidName(site.name) else {
+            showAlert(
+                title: "Unsupported site name",
+                message: "\"\(site.name)\" contains characters that can't be passed to Terminal safely. Run valet share manually.",
+                style: .warning
+            )
+            return
+        }
+
+        // Preflight: Valet 4 needs a share tool picked once via `valet share-tool`.
+        // Catch the common dead-ends here so the user isn't dumped into a
+        // failing Terminal. (nil tool = let valet print its own instructions.)
+        switch ValetConfigReader.readConfig()?.shareTool {
+        case .some(let tool) where ["ngrok", "cloudflared"].contains(tool):
+            let binaryExists = ["/opt/homebrew/bin/\(tool)", "/usr/local/bin/\(tool)"]
+                .contains { FileManager.default.fileExists(atPath: $0) }
+            if !binaryExists {
+                showAlert(
+                    title: "\(tool) not installed",
+                    message: "Valet is configured to share via \(tool), but it isn't installed.\n\nInstall it with:\n\nbrew install \(tool)",
+                    style: .warning
+                )
+                return
+            }
+
+        case .some("expose"):
+            guard let exposePath = Self.exposeBinaryPath() else {
+                showAlert(
+                    title: "expose not installed",
+                    message: "Valet is configured to share via expose, but it isn't installed.\n\nInstall it with:\n\ncomposer global require beyondcode/expose",
+                    style: .warning
+                )
+                return
+            }
+            // expose without a token opens a browser login that frequently
+            // fails — check up front and explain the one-time setup instead
+            let tokenCheck = await shell.execute(exposePath, arguments: ["token"], timeout: 10)
+            if tokenCheck.stdout.lowercased().contains("no authentication token") {
+                showAlert(
+                    title: "Expose token required",
+                    message: "Expose needs a one-time login before sharing:\n\n1. Create a free account at expose.dev\n2. Copy the token from your dashboard\n3. Run in Terminal:  expose token <YOUR-TOKEN>\n\nThen Share will work. Alternatively, switch to a token-free tunnel:\n\nbrew install cloudflared && valet share-tool cloudflared",
+                    style: .warning
+                )
+                return
+            }
+
+        default:
+            break
+        }
+
+        let opened = openTerminal(command: "valet share \(site.name)")
+        if !opened {
+            showAlert(
+                title: "Could not open Terminal",
+                message: "Please run this command manually:\n\nvalet share \(site.name)",
+                style: .warning
+            )
+        }
+    }
+
+    private static func exposeBinaryPath() -> String? {
+        [
+            "\(NSHomeDirectory())/.composer/vendor/bin/expose",
+            "\(NSHomeDirectory())/.config/composer/vendor/bin/expose",
+            "/opt/homebrew/bin/expose",
+            "/usr/local/bin/expose",
+        ].first { FileManager.default.fileExists(atPath: $0) }
     }
 
     // MARK: - Terminal + Alert helpers
@@ -114,67 +234,6 @@ final class AppViewModel {
         alert.addButton(withTitle: "OK")
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
-    }
-
-    func switchPHP(to version: PHPVersion) async {
-        // 1. Unlink all currently linked php versions
-        let listResult = await shell.executeShell("\(AppConstants.brewPath) list --formula | grep -E '^php(@[0-9.]+)?$'")
-        let allVersions = BrewParser.parsePHPVersions(listResult.stdout)
-        for v in allVersions where v.brewName != version.brewName {
-            _ = await shell.execute(AppConstants.brewPath, arguments: ["unlink", v.brewName])
-        }
-
-        // 2. Link the selected version
-        let linkResult = await shell.execute(
-            AppConstants.brewPath,
-            arguments: ["link", "--force", "--overwrite", version.brewName]
-        )
-
-        // 3. Restart PHP-FPM service for the new version
-        _ = await shell.execute(AppConstants.brewPath, arguments: ["services", "restart", version.brewName])
-
-        if linkResult.succeeded {
-            await refresh()
-        } else {
-            lastError = linkResult.stderr.isEmpty ? "PHP switch failed" : linkResult.stderr
-        }
-    }
-
-    func restartValet() async {
-        // Restart nginx + php via brew services (no sudo needed)
-        _ = await shell.execute(AppConstants.brewPath, arguments: ["services", "restart", "nginx"])
-        let phpResult = await shell.execute(AppConstants.brewPath, arguments: ["services", "list"])
-        // Find active php version and restart it
-        let phpService = ServiceParser.parseServices(phpResult.stdout)
-            .first { $0.name.hasPrefix("php") }
-        if let php = phpService {
-            _ = await shell.execute(AppConstants.brewPath, arguments: ["services", "restart", php.brewServiceName])
-        }
-        await refresh()
-    }
-
-    func restartService(_ service: ServiceStatus) async {
-        let result = await shell.execute(
-            AppConstants.brewPath,
-            arguments: ["services", "restart", service.brewServiceName]
-        )
-        if result.succeeded {
-            await refresh()
-        } else {
-            lastError = result.stderr
-        }
-    }
-
-    func restartNamedService(_ name: String) async {
-        let result = await shell.execute(
-            AppConstants.brewPath,
-            arguments: ["services", "restart", name]
-        )
-        if result.succeeded {
-            await refresh()
-        } else {
-            lastError = result.stderr
-        }
     }
 
     func setupAutoRefresh(interval: RefreshInterval) {
@@ -211,7 +270,7 @@ final class AppViewModel {
 
     /// Determine Valet status from brew services — no sudo, no valet CLI
     private func fetchValetStatus() async -> ValetStatus {
-        let result = await shell.execute(AppConstants.brewPath, arguments: ["services", "list"])
+        let result = await shell.execute(AppConstants.resolvedBrewPath, arguments: ["services", "list"])
         guard result.succeeded else { return .unknown }
 
         let lines = result.stdout.components(separatedBy: .newlines)
@@ -227,31 +286,8 @@ final class AppViewModel {
         }
 
         // Check if nginx is installed at all
-        let nginxExists = await shell.fileExists("/opt/homebrew/bin/nginx")
+        let nginxExists = await shell.fileExists(AppConstants.resolvedNginxPath)
         return nginxExists ? .stopped : .unknown
-    }
-
-    private struct PHPInfo {
-        let currentVersion: String
-        let versions: [PHPVersion]
-    }
-
-    private func fetchPHPInfo() async -> PHPInfo {
-        async let brewListResult = shell.executeShell("\(AppConstants.brewPath) list --formula | grep -E '^php(@[0-9.]+)?$'")
-        async let phpVersionResult = shell.execute("/opt/homebrew/bin/php", arguments: ["-v"])
-
-        let (brewList, phpVer) = await (brewListResult, phpVersionResult)
-
-        var versions = BrewParser.parsePHPVersions(brewList.stdout)
-        let currentVersion = ValetParser.parseCurrentPHP(phpVer.stdout) ?? "–"
-        BrewParser.resolveCurrentVersion(versions: &versions, currentVersionString: currentVersion)
-
-        return PHPInfo(currentVersion: currentVersion, versions: versions)
-    }
-
-    private func fetchServices() async -> [ServiceStatus] {
-        let result = await shell.execute(AppConstants.brewPath, arguments: ["services", "list"])
-        return ServiceParser.parseServices(result.stdout)
     }
 
     private func startAutoRefresh(interval: TimeInterval) {
