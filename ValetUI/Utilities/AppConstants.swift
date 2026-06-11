@@ -12,6 +12,14 @@ enum AppConstants {
         FileManager.default.fileExists(atPath: brewPath) ? brewPath : brewPathIntel
     }
 
+    /// "/opt/homebrew" on Apple Silicon, "/usr/local" on Intel
+    static var homebrewPrefix: String {
+        FileManager.default.fileExists(atPath: brewPath) ? "/opt/homebrew" : "/usr/local"
+    }
+
+    static var resolvedPHPPath: String { "\(homebrewPrefix)/bin/php" }
+    static var resolvedNginxPath: String { "\(homebrewPrefix)/bin/nginx" }
+
     // wp-cli: Intel uses /usr/local/bin/wp, ARM uses /opt/homebrew/bin/wp
     static var resolvedWPCLIPath: String {
         let paths = ["/usr/local/bin/wp", "/opt/homebrew/bin/wp"]
@@ -35,9 +43,9 @@ enum AppConstants {
     static var valetLogPath: String {
         "\(NSHomeDirectory())/.config/valet/Log/nginx-error.log"
     }
-    static let nginxLogPath = "/opt/homebrew/var/log/nginx/error.log"
+    static var nginxLogPath: String { "\(homebrewPrefix)/var/log/nginx/error.log" }
     static var phpLogPath: String {
-        "/opt/homebrew/var/log/php-fpm.log"
+        "\(homebrewPrefix)/var/log/php-fpm.log"
     }
 
     // Brew install URL for onboarding

@@ -101,14 +101,19 @@ final class SiteDeleterService {
         set(.detectDatabase, .done)
 
         // 2. Drop database
-        if let dbName = plan.dbName {
+        // dbName comes from wp-config.php (arbitrary content) — refuse anything
+        // that could escape the backtick-quoted SQL identifier.
+        if let dbName = plan.dbName, isSafeDBName(dbName) {
             set(.dropDatabase, .running)
             let result = await shell.execute(
                 AppConstants.resolvedMySQLPath,
-                arguments: ["-u", dbUser, "-p\(dbPass)", "-e", "DROP DATABASE IF EXISTS `\(dbName)`;"],
-                timeout: 15
+                arguments: ["-u", dbUser, "-e", "DROP DATABASE IF EXISTS `\(dbName)`;"],
+                timeout: 15,
+                extraEnvironment: ["MYSQL_PWD": dbPass]
             )
             set(.dropDatabase, result.succeeded ? .done : .failed(result.stderr))
+        } else if let dbName = plan.dbName {
+            set(.dropDatabase, .failed("Unsafe database name \"\(dbName)\" — drop it manually"))
         } else {
             set(.dropDatabase, .skipped)
         }
@@ -169,6 +174,12 @@ final class SiteDeleterService {
 
     private func set(_ step: Step, _ state: StepState) {
         stepStates[step] = state
+    }
+
+    private func isSafeDBName(_ name: String) -> Bool {
+        !name.isEmpty && name.allSatisfy { char in
+            char.isASCII && (char.isLetter || char.isNumber || char == "_" || char == "-" || char == "$")
+        }
     }
 
     private func removeFile(_ path: String, step: Step) {

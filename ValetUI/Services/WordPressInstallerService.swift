@@ -51,6 +51,15 @@ final class WordPressInstallerService {
         adminEmail: String
     ) async {
         guard !isRunning else { return }
+
+        // Site name reaches SQL identifiers and an AppleScript string — reject
+        // anything outside [a-zA-Z0-9-_.] before any step runs.
+        guard Site.isValidName(siteName) else {
+            errorMessage = "Invalid site name — use only letters, numbers, and hyphens."
+            stepStates[.createDirectory] = .failed("Invalid site name")
+            return
+        }
+
         isRunning = true
         isComplete = false
         errorMessage = nil
@@ -76,10 +85,11 @@ final class WordPressInstallerService {
             args: ["core", "download", "--quiet", "--path=\(siteDir)"]
         ) else { cleanup(siteDir: siteDir); isRunning = false; return }
 
-        // 3. Create database
+        // 3. Create database — password via MYSQL_PWD, not argv (visible in `ps`)
         guard await runShell(.createDatabase,
             exec: AppConstants.resolvedMySQLPath,
-            args: ["-u", dbUser, "-p\(dbPass)", "-e", "CREATE DATABASE `\(dbName)`;"]
+            args: ["-u", dbUser, "-e", "CREATE DATABASE `\(dbName)`;"],
+            env: ["MYSQL_PWD": dbPass]
         ) else { cleanup(siteDir: siteDir); isRunning = false; return }
 
         // 4. Create wp-config.php
@@ -145,9 +155,9 @@ final class WordPressInstallerService {
     }
 
     @discardableResult
-    private func runShell(_ step: Step, exec: String, args: [String]) async -> Bool {
+    private func runShell(_ step: Step, exec: String, args: [String], env: [String: String] = [:]) async -> Bool {
         set(step, .running)
-        let result = await shell.execute(exec, arguments: args, timeout: 120)
+        let result = await shell.execute(exec, arguments: args, timeout: 120, extraEnvironment: env)
         if result.succeeded {
             set(step, .done)
             return true
@@ -165,7 +175,7 @@ final class WordPressInstallerService {
 
     private func addToValetPaths(_ path: String) {
         let configPath = ValetConfigReader.configPath
-        guard var data = try? Data(contentsOf: URL(fileURLWithPath: configPath)),
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: configPath)),
               var config = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               var paths = config["paths"] as? [String] else { return }
 

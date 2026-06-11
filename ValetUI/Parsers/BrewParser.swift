@@ -36,13 +36,16 @@ enum BrewParser {
     ) {
         guard let current = currentVersionString else { return }
 
+        // The unversioned "php" formula gets a "current" placeholder at parse
+        // time — substitute the real number from `php -v` so the menu shows
+        // "PHP 8.5" instead of "PHP current"
+        for i in versions.indices where versions[i].version == "current" {
+            versions[i].version = current
+        }
+
         // Mark isCurrent for matching version
         for i in versions.indices {
-            if versions[i].version == current || versions[i].version == "current" {
-                versions[i].isCurrent = true
-            } else {
-                versions[i].isCurrent = false
-            }
+            versions[i].isCurrent = versions[i].version == current
         }
 
         // If no version was explicitly matched, ensure no duplicates remain
@@ -51,6 +54,18 @@ enum BrewParser {
             // Mark first as current as fallback
             versions[0].isCurrent = true
         }
+    }
+
+    /// Resolves the unversioned `php` formula's real version from its Cellar
+    /// directory names (e.g. ["8.5.4"] → "8.5"). `php -v` can't be used — it
+    /// reports whichever formula is currently linked, not this keg's version.
+    static func parseCellarVersion(_ entries: [String]) -> String? {
+        let versions = entries.compactMap { entry -> String? in
+            let parts = entry.split(separator: ".")
+            guard parts.count >= 2, Int(parts[0]) != nil, Int(parts[1]) != nil else { return nil }
+            return "\(parts[0]).\(parts[1])"
+        }
+        return versions.sorted { $0.compare($1, options: .numeric) == .orderedAscending }.last
     }
 
     private static func isValidPHPVersion(_ version: String) -> Bool {

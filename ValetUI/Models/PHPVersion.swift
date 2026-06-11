@@ -2,7 +2,7 @@ import Foundation
 
 struct PHPVersion: Identifiable, Hashable, Sendable {
     let id: UUID
-    let version: String
+    var version: String
     let brewName: String
     var isCurrent: Bool
 
