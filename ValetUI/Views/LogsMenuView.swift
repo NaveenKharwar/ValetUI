@@ -2,6 +2,8 @@ import SwiftUI
 import AppKit
 
 struct LogsMenuView: View {
+    @Environment(\.openWindow) private var openWindow
+
     var body: some View {
         Menu {
             Button {
@@ -36,14 +38,10 @@ struct LogsMenuView: View {
         }
     }
 
+    /// Opens the in-app tail viewer
     private func openLog(_ path: String) {
         let expandedPath = NSString(string: path).expandingTildeInPath
-        let url = URL(fileURLWithPath: expandedPath)
-        if FileManager.default.fileExists(atPath: expandedPath) {
-            NSWorkspace.shared.open(url)
-        } else {
-            // Show in Finder even if log doesn't exist yet — open parent dir
-            NSWorkspace.shared.open(url.deletingLastPathComponent())
-        }
+        openWindow(id: "log-viewer", value: expandedPath)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }

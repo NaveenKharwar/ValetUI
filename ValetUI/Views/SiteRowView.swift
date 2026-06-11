@@ -50,6 +50,22 @@ struct SiteRowView: View {
                 Label("Copy URL", systemImage: "doc.on.clipboard")
             }
 
+            // Share publicly (valet share)
+            Button {
+                let alert = NSAlert()
+                alert.messageText = "Share \(site.name).\(site.tld) publicly?"
+                alert.informativeText = "Terminal will open and run: valet share \(site.name)\n\nYour local site becomes reachable from the internet through a tunnel for as long as the command runs. The public URL appears in Terminal. Press Ctrl+C there to stop sharing."
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "Open Terminal")
+                alert.addButton(withTitle: "Cancel")
+                NSApp.activate(ignoringOtherApps: true)
+                if alert.runModal() == .alertFirstButtonReturn {
+                    Task { await vm.shareSite(site) }
+                }
+            } label: {
+                Label("Share Publicly…", systemImage: "antenna.radiowaves.left.and.right")
+            }
+
             Divider()
 
             // Manage Subdomains
@@ -58,6 +74,43 @@ struct SiteRowView: View {
                 NSApp.activate(ignoringOtherApps: true)
             } label: {
                 Label("Manage Subdomains…", systemImage: "network")
+            }
+
+            // Per-site PHP version (valet isolate)
+            if !vm.phpViewModel.versions.isEmpty {
+                Menu {
+                    Button {
+                        Task { await vm.unisolateSite(site) }
+                    } label: {
+                        HStack {
+                            Text("Default (\(vm.phpViewModel.currentVersion))")
+                            if site.isolatedPHP == nil {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                    .disabled(site.isolatedPHP == nil)
+
+                    Divider()
+
+                    ForEach(vm.phpViewModel.versions) { version in
+                        Button {
+                            Task { await vm.isolateSite(site, version: version) }
+                        } label: {
+                            HStack {
+                                Text(version.displayName)
+                                if site.isolatedPHP == version.brewName {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        .disabled(site.isolatedPHP == version.brewName)
+                    }
+                } label: {
+                    Label("PHP Version", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
             }
 
             Divider()
@@ -112,7 +165,7 @@ struct SiteRowView: View {
                     .font(.caption)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(site.name)
-                    Text(site.url)
+                    Text(site.isolatedPHP.map { "\(site.url) · \($0)" } ?? site.url)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }

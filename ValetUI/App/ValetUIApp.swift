@@ -48,6 +48,13 @@ struct ValetUIApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        WindowGroup("Log Viewer", id: "log-viewer", for: String.self) { $logPath in
+            if let logPath {
+                LogViewerView(logPath: logPath)
+            }
+        }
+        .defaultPosition(.center)
     }
 }
 

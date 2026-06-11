@@ -14,9 +14,12 @@ struct ValetConfigReader {
         let tld: String
         let paths: [String]
         let loopback: String?
+        /// Valet 4: "ngrok", "expose", or "cloudflared" — nil when never configured
+        let shareTool: String?
 
         enum CodingKeys: String, CodingKey {
             case tld, paths, loopback
+            case shareTool = "share-tool"
         }
     }
 
@@ -36,7 +39,8 @@ struct ValetConfigReader {
             let fullPath = "\(sitesDir)/\(name)"
             guard let resolved = try? fm.destinationOfSymbolicLink(atPath: fullPath) else { return nil }
             let isSecured = hasCertificate(name: name, tld: tld)
-            return Site(name: name, path: resolved, tld: tld, isSecured: isSecured, isParked: false)
+            let isolated = isolatedPHPVersion(name: name, tld: tld)
+            return Site(name: name, path: resolved, tld: tld, isSecured: isSecured, isParked: false, isolatedPHP: isolated)
         }.sorted { $0.name < $1.name }
     }
 
@@ -74,8 +78,9 @@ struct ValetConfigReader {
                 var isDir: ObjCBool = false
                 guard fm.fileExists(atPath: fullPath, isDirectory: &isDir), isDir.boolValue else { continue }
                 let isSecured = hasCertificate(name: name, tld: tld)
+                let isolated = isolatedPHPVersion(name: name, tld: tld)
                 seen.insert(name)
-                sites.append(Site(name: name, path: fullPath, tld: tld, isSecured: isSecured, isParked: true))
+                sites.append(Site(name: name, path: fullPath, tld: tld, isSecured: isSecured, isParked: true, isolatedPHP: isolated))
             }
         }
 
@@ -96,6 +101,22 @@ struct ValetConfigReader {
     static func hasCertificate(name: String, tld: String) -> Bool {
         let certPath = "\(certificatesDir)/\(name).\(tld).crt"
         return FileManager.default.fileExists(atPath: certPath)
+    }
+
+    // MARK: - PHP isolation
+
+    /// `valet isolate` writes "# ISOLATED_PHP_VERSION=php@8.2" into the site's
+    /// Nginx config — returns the brew formula name, or nil if not isolated.
+    static func isolatedPHPVersion(name: String, tld: String) -> String? {
+        let confPath = "\(configDir)/Nginx/\(name).\(tld)"
+        guard let contents = try? String(contentsOfFile: confPath, encoding: .utf8) else { return nil }
+
+        for line in contents.components(separatedBy: .newlines).prefix(5) {
+            guard let range = line.range(of: "ISOLATED_PHP_VERSION=") else { continue }
+            let value = line[range.upperBound...].trimmingCharacters(in: .whitespaces)
+            return value.isEmpty ? nil : value
+        }
+        return nil
     }
 
     // MARK: - Is Valet installed
