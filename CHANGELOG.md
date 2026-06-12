@@ -4,6 +4,13 @@ All notable changes to ValetUI are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-06-12
+
+### Fixed
+- New WordPress Site: progress view no longer silently returns to the form on failure; full error is shown in a scrollable panel with a Back button
+- WP-CLI PHP memory exhaustion during WordPress download: wp binary is a Phar archive, so `WP_CLI_PHP_ARGS` was never read; now invokes PHP directly with `-d memory_limit` so the limit is applied before any Phar code runs
+- WP-CLI memory limit is now user-configurable in Preferences → General (256M / 512M / 1G / 2G; default 512M)
+
 ## [1.1.0] - 2026-06-12
 
 ### Added
