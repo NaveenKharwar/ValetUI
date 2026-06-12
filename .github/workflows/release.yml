@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+# Default GITHUB_TOKEN is read-only — release creation needs contents:write
+permissions:
+  contents: write
+
 jobs:
   release:
     # macos-15 default Xcode is 16+ — required for Swift 6
