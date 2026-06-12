@@ -110,9 +110,15 @@ In Xcode:
 1. Select your Development Team in **Signing & Capabilities**
 2. Press `⌘R` to build and run
 
-### Download Release (coming soon)
+### Download Release
 
-Download the latest `.dmg` from [GitHub Releases](https://github.com/naveenkharwar/ValetUI/releases).
+Download the latest `.dmg` from [GitHub Releases](https://github.com/naveenkharwar/ValetUI/releases), open it, and drag **ValetUI** to **Applications**.
+
+Releases are ad-hoc signed (free open-source build, not notarized by Apple), so macOS shows a one-time warning on first launch:
+
+- **macOS 15 (Sequoia)+** — open the app once, dismiss the warning, then **System Settings → Privacy & Security → Open Anyway**
+- **macOS 14 and earlier** — right-click the app → **Open** → **Open**
+- Or from Terminal: `xattr -d com.apple.quarantine /Applications/ValetUI.app`
 
 ## Build Instructions
 

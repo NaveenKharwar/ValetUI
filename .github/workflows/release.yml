@@ -16,83 +16,56 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
-      # Import signing certificate from GitHub Secrets
-      - name: Import Certificate
-        env:
-          CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - name: Run Tests
         run: |
-          echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security import certificate.p12 -k build.keychain \
-            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: \
-            -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          xcodebuild test \
+            -project ValetUI.xcodeproj \
+            -scheme ValetUI \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || cat
 
-      # Archive
+      # Ad-hoc signing: free, no Apple Developer account. Apple Silicon
+      # refuses to launch fully unsigned binaries, so "-" identity is the
+      # minimum. Users approve the app once via Gatekeeper on first launch.
       - name: Archive
-        env:
-          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           xcodebuild archive \
             -project ValetUI.xcodeproj \
             -scheme ValetUI \
             -configuration Release \
             -archivePath ./build/ValetUI.xcarchive \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_STYLE=Manual
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=""
 
-      # Export — options plist generated here so teamID comes from secrets
-      - name: Export Archive
-        env:
-          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
-        run: |
-          cat > ./build/ExportOptions.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>developer-id</string>
-              <key>teamID</key>
-              <string>$DEVELOPMENT_TEAM</string>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild -exportArchive \
-            -archivePath ./build/ValetUI.xcarchive \
-            -exportPath ./build/export \
-            -exportOptionsPlist ./build/ExportOptions.plist
-
-      # Create DMG first — notarytool accepts dmg/zip/pkg, not .app bundles
       - name: Create DMG
         run: |
+          APP="./build/ValetUI.xcarchive/Products/Applications/ValetUI.app"
+          codesign --verify --verbose=2 "$APP"
+          mkdir -p ./build/dmg
+          cp -R "$APP" ./build/dmg/
+          ln -s /Applications ./build/dmg/Applications
           hdiutil create -volname "ValetUI" \
-            -srcfolder ./build/export/ValetUI.app \
+            -srcfolder ./build/dmg \
             -ov -format UDZO \
             ./build/ValetUI-${{ github.ref_name }}.dmg
 
-      # Notarize + staple the DMG
-      - name: Notarize
-        env:
-          NOTARIZE_APPLE_ID: ${{ secrets.NOTARIZE_APPLE_ID }}
-          NOTARIZE_TEAM_ID: ${{ secrets.NOTARIZE_TEAM_ID }}
-          NOTARIZE_PASSWORD: ${{ secrets.NOTARIZE_PASSWORD }}
-        run: |
-          xcrun notarytool submit ./build/ValetUI-${{ github.ref_name }}.dmg \
-            --apple-id "$NOTARIZE_APPLE_ID" \
-            --team-id "$NOTARIZE_TEAM_ID" \
-            --password "$NOTARIZE_PASSWORD" \
-            --wait
-          xcrun stapler staple ./build/ValetUI-${{ github.ref_name }}.dmg
-
-      # Upload to GitHub Release
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: ./build/ValetUI-${{ github.ref_name }}.dmg
+          body: |
+            ## Install
+
+            1. Download `ValetUI-${{ github.ref_name }}.dmg`, open it, drag **ValetUI** to **Applications**
+            2. First launch: macOS will warn that the app is from an unidentified developer (it is ad-hoc signed, not notarized — this is expected for a free open-source build)
+               - **macOS 15 (Sequoia) and later:** open the app once, dismiss the warning, then go to **System Settings → Privacy & Security** and click **Open Anyway**
+               - **macOS 14 and earlier:** right-click the app → **Open** → **Open**
+            3. Or skip the warning entirely from Terminal:
+               ```
+               xattr -d com.apple.quarantine /Applications/ValetUI.app
+               ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
