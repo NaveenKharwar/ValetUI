@@ -27,7 +27,7 @@ Works on Apple Silicon and Intel Macs (Homebrew prefix auto-detected).
 | Requirement | Version |
 |-------------|---------|
 | macOS | 14.0 (Sonoma)+ |
-| Xcode | 15.0+ (to build from source) |
+| Xcode | 16.0+ (to build from source — Swift 6) |
 | Laravel Valet | 3.x+ |
 | Homebrew | Any recent version |
 
