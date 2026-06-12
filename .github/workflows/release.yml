@@ -45,35 +45,49 @@ jobs:
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual
 
-      # Export
+      # Export — options plist generated here so teamID comes from secrets
       - name: Export Archive
+        env:
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
+          cat > ./build/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>developer-id</string>
+              <key>teamID</key>
+              <string>$DEVELOPMENT_TEAM</string>
+          </dict>
+          </plist>
+          EOF
           xcodebuild -exportArchive \
             -archivePath ./build/ValetUI.xcarchive \
             -exportPath ./build/export \
-            -exportOptionsPlist ExportOptions.plist
+            -exportOptionsPlist ./build/ExportOptions.plist
 
-      # Notarize
-      - name: Notarize
-        env:
-          NOTARIZE_APPLE_ID: ${{ secrets.NOTARIZE_APPLE_ID }}
-          NOTARIZE_TEAM_ID: ${{ secrets.NOTARIZE_TEAM_ID }}
-          NOTARIZE_PASSWORD: ${{ secrets.NOTARIZE_PASSWORD }}
-        run: |
-          xcrun notarytool submit ./build/export/ValetUI.app \
-            --apple-id "$NOTARIZE_APPLE_ID" \
-            --team-id "$NOTARIZE_TEAM_ID" \
-            --password "$NOTARIZE_PASSWORD" \
-            --wait
-          xcrun stapler staple ./build/export/ValetUI.app
-
-      # Create DMG
+      # Create DMG first — notarytool accepts dmg/zip/pkg, not .app bundles
       - name: Create DMG
         run: |
           hdiutil create -volname "ValetUI" \
             -srcfolder ./build/export/ValetUI.app \
             -ov -format UDZO \
             ./build/ValetUI-${{ github.ref_name }}.dmg
+
+      # Notarize + staple the DMG
+      - name: Notarize
+        env:
+          NOTARIZE_APPLE_ID: ${{ secrets.NOTARIZE_APPLE_ID }}
+          NOTARIZE_TEAM_ID: ${{ secrets.NOTARIZE_TEAM_ID }}
+          NOTARIZE_PASSWORD: ${{ secrets.NOTARIZE_PASSWORD }}
+        run: |
+          xcrun notarytool submit ./build/ValetUI-${{ github.ref_name }}.dmg \
+            --apple-id "$NOTARIZE_APPLE_ID" \
+            --team-id "$NOTARIZE_TEAM_ID" \
+            --password "$NOTARIZE_PASSWORD" \
+            --wait
+          xcrun stapler staple ./build/ValetUI-${{ github.ref_name }}.dmg
 
       # Upload to GitHub Release
       - name: Upload Release Asset
