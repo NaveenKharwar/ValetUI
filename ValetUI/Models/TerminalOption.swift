@@ -97,7 +97,9 @@ struct TerminalOption: Identifiable, Hashable {
         }
     }
 
-    static let all: [TerminalOption] = [
+    // @MainActor: NSImage isn't Sendable on the Xcode 16 SDK, and every
+    // caller is main-actor UI code anyway.
+    @MainActor static let all: [TerminalOption] = [
         TerminalOption(
             id: "terminal",
             name: "Terminal",
@@ -130,5 +132,5 @@ struct TerminalOption: Identifiable, Hashable {
         ),
     ]
 
-    static var installed: [TerminalOption] { all.filter(\.isInstalled) }
+    @MainActor static var installed: [TerminalOption] { all.filter(\.isInstalled) }
 }

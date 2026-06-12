@@ -24,7 +24,7 @@ jobs:
             -scheme ValetUI \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || cat
+            -quiet
 
       # Ad-hoc signing: free, no Apple Developer account. Apple Silicon
       # refuses to launch fully unsigned binaries, so "-" identity is the

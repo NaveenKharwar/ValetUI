@@ -18,31 +18,36 @@ jobs:
       - name: Show Swift version
         run: swift --version
 
+      # No xcpretty pipe — `| xcpretty || cat` masked xcodebuild's exit code
+      # and let broken builds report green
       - name: Build (Debug)
         run: |
+          set -o pipefail
           xcodebuild build \
             -project ValetUI.xcodeproj \
             -scheme ValetUI \
             -configuration Debug \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || cat
+            -quiet
 
       - name: Unit Tests
         run: |
+          set -o pipefail
           xcodebuild test \
             -project ValetUI.xcodeproj \
             -scheme ValetUI \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || cat
+            -quiet
 
       - name: Build (Release)
         run: |
+          set -o pipefail
           xcodebuild build \
             -project ValetUI.xcodeproj \
             -scheme ValetUI \
             -configuration Release \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || cat
+            -quiet

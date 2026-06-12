@@ -41,8 +41,10 @@ struct EditorOption: Identifiable, Hashable {
             .first { FileManager.default.fileExists(atPath: $0.path) }
     }
 
-    // All known editors — filter by isInstalled at runtime
-    static let all: [EditorOption] = [
+    // All known editors — filter by isInstalled at runtime.
+    // @MainActor: NSImage isn't Sendable on the Xcode 16 SDK, and every
+    // caller is main-actor UI code anyway.
+    @MainActor static let all: [EditorOption] = [
         EditorOption(
             id: "vscode",
             name: "Visual Studio Code",
@@ -101,5 +103,5 @@ struct EditorOption: Identifiable, Hashable {
         ),
     ]
 
-    static var installed: [EditorOption] { all.filter(\.isInstalled) }
+    @MainActor static var installed: [EditorOption] { all.filter(\.isInstalled) }
 }
