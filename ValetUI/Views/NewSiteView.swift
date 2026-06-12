@@ -34,7 +34,7 @@ struct NewSiteView: View {
 
             if installer.isComplete {
                 completionView
-            } else if installer.isRunning {
+            } else if installer.isRunning || installer.errorMessage != nil {
                 progressView
             } else {
                 formView
@@ -142,6 +142,27 @@ struct NewSiteView: View {
             ForEach(WordPressInstallerService.Step.allCases, id: \.self) { step in
                 stepRow(step)
             }
+
+            if let errorMessage = installer.errorMessage {
+                Divider()
+                ScrollView {
+                    Text(errorMessage)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .textSelection(.enabled)
+                }
+                .frame(maxHeight: 80)
+                .padding(8)
+                .background(.red.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                HStack {
+                    Spacer()
+                    Button("Back") {
+                        installer.reset()
+                    }
+                    .keyboardShortcut(.cancelAction)
+                }
+            }
         }
         .padding()
     }
@@ -154,13 +175,6 @@ struct NewSiteView: View {
             Text(step.rawValue)
                 .font(.system(.body, design: .default))
 
-            if case .failed(let msg) = installer.stepStates[step] {
-                Text("— \(msg)")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-            }
             Spacer()
         }
     }

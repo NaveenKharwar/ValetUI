@@ -5,6 +5,9 @@ struct GeneralPrefsView: View {
     @State private var launchAtLogin: Bool = false
     @State private var autoRefresh: Bool = false
     @State private var refreshInterval: RefreshInterval = .thirtySeconds
+    @State private var wpCLIMemoryLimit: String = "512M"
+
+    private static let memoryOptions = ["256M", "512M", "1G", "2G"]
 
     var body: some View {
         Form {
@@ -39,6 +42,22 @@ struct GeneralPrefsView: View {
                 }
             } header: {
                 Text("Startup & Refresh")
+            }
+
+            Section {
+                Picker("WP-CLI Memory Limit", selection: $wpCLIMemoryLimit) {
+                    ForEach(Self.memoryOptions, id: \.self) { Text($0).tag($0) }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 200)
+                .onChange(of: wpCLIMemoryLimit) { _, new in
+                    AppSettings.shared.wpCLIMemoryLimit = new
+                }
+            } header: {
+                Text("WordPress")
+                Text("PHP memory limit passed to WP-CLI during site creation")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section {
@@ -78,5 +97,6 @@ struct GeneralPrefsView: View {
         autoRefresh = UserDefaults.standard.bool(forKey: "autoRefresh")
         let raw = UserDefaults.standard.double(forKey: "refreshInterval")
         refreshInterval = RefreshInterval(rawValue: raw) ?? .thirtySeconds
+        wpCLIMemoryLimit = AppSettings.shared.wpCLIMemoryLimit
     }
 }

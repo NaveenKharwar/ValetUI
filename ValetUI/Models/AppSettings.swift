@@ -53,6 +53,11 @@ final class AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: Keys.defaultTerminalID) }
     }
 
+    var wpCLIMemoryLimit: String {
+        get { UserDefaults.standard.string(forKey: Keys.wpCLIMemoryLimit) ?? "512M" }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.wpCLIMemoryLimit) }
+    }
+
     // Resolved editor — falls back to first installed
     var resolvedEditor: EditorOption? {
         if defaultEditorID == "custom" {
@@ -82,6 +87,7 @@ final class AppSettings {
         static let defaultEditorID = "defaultEditorID"
         static let customEditorPath = "customEditorPath"
         static let defaultTerminalID = "defaultTerminalID"
+        static let wpCLIMemoryLimit = "wpCLIMemoryLimit"
     }
 
     private init() {}

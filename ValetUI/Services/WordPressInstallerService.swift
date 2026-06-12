@@ -80,8 +80,7 @@ final class WordPressInstallerService {
         }) else { isRunning = false; return }
 
         // 2. Download WordPress
-        guard await runShell(.downloadWP,
-            exec: AppConstants.resolvedWPCLIPath,
+        guard await runWPCLI(.downloadWP,
             args: ["core", "download", "--quiet", "--path=\(siteDir)"]
         ) else { cleanup(siteDir: siteDir); isRunning = false; return }
 
@@ -93,8 +92,7 @@ final class WordPressInstallerService {
         ) else { cleanup(siteDir: siteDir); isRunning = false; return }
 
         // 4. Create wp-config.php
-        guard await runShell(.createConfig,
-            exec: AppConstants.resolvedWPCLIPath,
+        guard await runWPCLI(.createConfig,
             args: [
                 "config", "create",
                 "--dbname=\(dbName)",
@@ -106,8 +104,7 @@ final class WordPressInstallerService {
         ) else { cleanup(siteDir: siteDir); isRunning = false; return }
 
         // 5. Install WordPress
-        guard await runShell(.installWP,
-            exec: AppConstants.resolvedWPCLIPath,
+        guard await runWPCLI(.installWP,
             args: [
                 "core", "install",
                 "--url=\(fullURL)",
@@ -152,6 +149,15 @@ final class WordPressInstallerService {
             errorMessage = error.localizedDescription
             return false
         }
+    }
+
+    @discardableResult
+    private func runWPCLI(_ step: Step, args: [String]) async -> Bool {
+        // Call PHP directly so -d memory_limit applies — wp is a Phar,
+        // not a shell script, so WP_CLI_PHP_ARGS env var is never read.
+        let memoryLimit = AppSettings.shared.wpCLIMemoryLimit
+        let phpArgs = ["-d", "memory_limit=\(memoryLimit)", AppConstants.resolvedWPCLIPath] + args
+        return await runShell(step, exec: AppConstants.resolvedPHPPath, args: phpArgs)
     }
 
     @discardableResult
