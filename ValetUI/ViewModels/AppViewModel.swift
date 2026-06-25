@@ -196,11 +196,13 @@ final class AppViewModel {
             break
         }
 
-        let opened = openTerminal(command: "valet share \(site.name)")
+        let valetBin = AppConstants.valetPath
+        let shellInit = "source ~/.zshrc 2>/dev/null || source ~/.bash_profile 2>/dev/null || true"
+        let opened = openTerminal(command: "\(shellInit); \(valetBin) share \(site.name)")
         if !opened {
             showAlert(
                 title: "Could not open Terminal",
-                message: "Please run this command manually:\n\nvalet share \(site.name)",
+                message: "Please run this command manually:\n\n\(valetBin) share \(site.name)",
                 style: .warning
             )
         }
@@ -220,7 +222,7 @@ final class AppViewModel {
     @discardableResult
     func openTerminal(command: String) -> Bool {
         let terminal = AppSettings.shared.resolvedTerminal
-            ?? TerminalOption.all.first { $0.id == "terminal" }
+            ?? TerminalOption.all.first { $0.id == "com.apple.Terminal" }
         guard let terminal else { return false }
         terminal.open(path: NSHomeDirectory(), command: command)
         return true

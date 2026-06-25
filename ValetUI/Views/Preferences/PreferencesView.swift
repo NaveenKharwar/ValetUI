@@ -18,6 +18,10 @@ struct PreferencesView: View {
             ValetPrefsView()
                 .tabItem { Label("Valet", systemImage: "v.circle") }
                 .tag("valet")
+
+            AboutPrefsView()
+                .tabItem { Label("About", systemImage: "info.circle") }
+                .tag("about")
         }
         .frame(width: 520)
         .fixedSize(horizontal: true, vertical: false)

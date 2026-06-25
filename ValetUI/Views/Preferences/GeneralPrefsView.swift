@@ -1,7 +1,7 @@
 import SwiftUI
-import ServiceManagement
 
 struct GeneralPrefsView: View {
+    private var launchAtLoginService: LaunchAtLoginService { LaunchAtLoginService.shared }
     @State private var launchAtLogin: Bool = false
     @State private var autoRefresh: Bool = false
     @State private var refreshInterval: RefreshInterval = .thirtySeconds
@@ -14,12 +14,8 @@ struct GeneralPrefsView: View {
             Section {
                 Toggle("Launch at Login", isOn: $launchAtLogin)
                     .help("Start ValetUI automatically when you log in")
-                    .onChange(of: launchAtLogin) { _, new in
-                        if new {
-                            try? SMAppService.mainApp.register()
-                        } else {
-                            try? SMAppService.mainApp.unregister()
-                        }
+                    .onChange(of: launchAtLogin) { _, _ in
+                        launchAtLoginService.toggle()
                     }
 
                 Toggle("Auto Refresh", isOn: $autoRefresh)
@@ -42,6 +38,12 @@ struct GeneralPrefsView: View {
                 }
             } header: {
                 Text("Startup & Refresh")
+            } footer: {
+                if autoRefresh {
+                    Label("Auto refresh is on — status updates every \(refreshInterval.label.lowercased()).", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section {
@@ -58,34 +60,12 @@ struct GeneralPrefsView: View {
                 Text("PHP memory limit passed to WP-CLI during site creation")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } footer: {
+                Label("WP-CLI memory limit is set to \(wpCLIMemoryLimit).", systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
-            Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Version").foregroundStyle(.secondary)
-                        Text(AppConstants.appVersion)
-                    }
-                    Spacer()
-                    Button("Check for Updates") {
-                        NSWorkspace.shared.open(
-                            URL(string: "https://github.com/naveenkharwar/ValetUI/releases")!
-                        )
-                    }
-                }
-
-                HStack {
-                    Text("GitHub").foregroundStyle(.secondary)
-                    Spacer()
-                    Button("View Source") {
-                        NSWorkspace.shared.open(
-                            URL(string: "https://github.com/naveenkharwar/ValetUI")!
-                        )
-                    }
-                }
-            } header: {
-                Text("About")
-            }
         }
         .formStyle(.grouped)
         .padding()
@@ -93,7 +73,7 @@ struct GeneralPrefsView: View {
     }
 
     private func loadValues() {
-        launchAtLogin = SMAppService.mainApp.status == .enabled
+        launchAtLogin = launchAtLoginService.isEnabled
         autoRefresh = UserDefaults.standard.bool(forKey: "autoRefresh")
         let raw = UserDefaults.standard.double(forKey: "refreshInterval")
         refreshInterval = RefreshInterval(rawValue: raw) ?? .thirtySeconds

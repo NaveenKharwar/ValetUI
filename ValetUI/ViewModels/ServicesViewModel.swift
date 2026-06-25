@@ -35,14 +35,26 @@ final class ServicesViewModel {
     }
 
     func restart(_ service: ServiceStatus) async {
-        await restartNamed(service.brewServiceName)
+        await runServiceAction("restart", service.brewServiceName)
     }
 
     func restartNamed(_ name: String) async {
+        await runServiceAction("restart", name)
+    }
+
+    func start(_ service: ServiceStatus) async {
+        await runServiceAction("start", service.brewServiceName)
+    }
+
+    func stop(_ service: ServiceStatus) async {
+        await runServiceAction("stop", service.brewServiceName)
+    }
+
+    private func runServiceAction(_ action: String, _ name: String) async {
         lastError = nil
         let result = await shell.execute(
             AppConstants.resolvedBrewPath,
-            arguments: ["services", "restart", name]
+            arguments: ["services", action, name]
         )
         if result.succeeded {
             await onGlobalRefresh?()

@@ -33,6 +33,13 @@ jobs:
       # Ad-hoc signing: free, no Apple Developer account. Apple Silicon
       # refuses to launch fully unsigned binaries, so "-" identity is the
       # minimum. Users approve the app once via Gatekeeper on first launch.
+      - name: Set version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BUILD=$(git rev-list --count HEAD)
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" ValetUI/Resources/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD" ValetUI/Resources/Info.plist
+
       - name: Archive
         run: |
           xcodebuild archive \

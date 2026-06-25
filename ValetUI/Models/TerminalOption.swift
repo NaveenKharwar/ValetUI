@@ -14,123 +14,79 @@ struct TerminalOption: Identifiable, Hashable {
     static func == (lhs: TerminalOption, rhs: TerminalOption) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
-    /// Open terminal at `path`. If `command` is supplied, run it instead of just cd-ing.
+    /// Open terminal at `path`.
     func open(path: String, command: String? = nil) {
-        let safePath = path.replacingOccurrences(of: "'", with: "'\\''")
-        // Build the shell line: cd then command, or just cd
-        let shellLine: String
-        if let cmd = command {
-            shellLine = "cd '\(safePath)' && \(cmd)"
-        } else {
-            shellLine = "cd '\(safePath)'"
+        let resolvedAppPath = FileManager.default.fileExists(atPath: appPath)
+            ? appPath
+            : NSHomeDirectory() + "/Applications/" + URL(fileURLWithPath: appPath).lastPathComponent
+        let appURL = URL(fileURLWithPath: resolvedAppPath)
+
+        if command == nil {
+            // No command — just open the directory in the terminal
+            NSWorkspace.shared.open(
+                [URL(fileURLWithPath: path)],
+                withApplicationAt: appURL,
+                configuration: NSWorkspace.OpenConfiguration()
+            )
+            return
         }
-        let safeShellLine = shellLine.replacingOccurrences(of: "\\", with: "\\\\")
-                                     .replacingOccurrences(of: "\"", with: "\\\"")
 
-        switch id {
-        case "iterm2":
-            let script = """
-            tell application "iTerm2"
-                activate
-                if (count of windows) = 0 then
-                    create window with default profile
-                end if
-                tell current window
-                    create tab with default profile
-                    tell current session
-                        write text "\(safeShellLine)"
-                    end tell
-                end tell
-            end tell
-            """
-            runAppleScript(script)
-
-        case "warp":
-            if command == nil {
-                // Warp URL scheme only supports path, not arbitrary commands
-                let encoded = path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-                if let url = URL(string: "warp://action/new_tab?path=\(encoded)") {
-                    NSWorkspace.shared.open(url)
-                    return
-                }
-            }
-            // Fall through to AppleScript for command mode
-            let script = """
-            tell application "Warp"
-                activate
-                do script "\(safeShellLine)"
-            end tell
-            """
-            runAppleScript(script)
-
-        case "ghostty":
-            if command == nil {
-                let script = """
-                do shell script "/Applications/Ghostty.app/Contents/MacOS/ghostty --working-directory='\(safePath)' &"
-                """
-                runAppleScript(script)
-            } else {
-                // Ghostty: open with working dir + run command via shell
-                let script = """
-                do shell script "/Applications/Ghostty.app/Contents/MacOS/ghostty --working-directory='\(safePath)' -e sh -c '\(shellLine.replacingOccurrences(of: "'", with: "'\\''"))' &"
-                """
-                runAppleScript(script)
-            }
-
-        default:
-            // Terminal.app, Hyper, and any other app supporting `do script`
-            let script = """
-            tell application "\(name)"
-                activate
-                do script "\(safeShellLine)"
-            end tell
-            """
-            runAppleScript(script)
+        // Has a command — write a temp .command file and open it.
+        // This avoids all AppleScript escaping issues and works with any terminal.
+        let script = """
+        #!/bin/bash
+        source ~/.zshrc 2>/dev/null || source ~/.bash_profile 2>/dev/null || true
+        cd '\(path.replacingOccurrences(of: "'", with: "'\\''"))'
+        \(command!)
+        """
+        let tmpFile = NSTemporaryDirectory() + "valetui_\(UUID().uuidString).command"
+        do {
+            try script.write(toFile: tmpFile, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tmpFile)
+            NSWorkspace.shared.open(
+                [URL(fileURLWithPath: tmpFile)],
+                withApplicationAt: appURL,
+                configuration: NSWorkspace.OpenConfiguration()
+            )
+        } catch {
+            print("ValetUI: failed to write temp command file: \(error)")
         }
+
     }
 
-    private func runAppleScript(_ source: String) {
-        var error: NSDictionary?
-        NSAppleScript(source: source)?.executeAndReturnError(&error)
-        if let err = error {
-            print("AppleScript error: \(err)")
-        }
-    }
-
-    // @MainActor: NSImage isn't Sendable on the Xcode 16 SDK, and every
-    // caller is main-actor UI code anyway.
-    @MainActor static let all: [TerminalOption] = [
-        TerminalOption(
-            id: "terminal",
-            name: "Terminal",
-            appPath: "/System/Applications/Utilities/Terminal.app",
-            icon: NSWorkspace.shared.icon(forFile: "/System/Applications/Utilities/Terminal.app")
-        ),
-        TerminalOption(
-            id: "iterm2",
-            name: "iTerm2",
-            appPath: "/Applications/iTerm.app",
-            icon: NSWorkspace.shared.icon(forFile: "/Applications/iTerm.app")
-        ),
-        TerminalOption(
-            id: "warp",
-            name: "Warp",
-            appPath: "/Applications/Warp.app",
-            icon: NSWorkspace.shared.icon(forFile: "/Applications/Warp.app")
-        ),
-        TerminalOption(
-            id: "ghostty",
-            name: "Ghostty",
-            appPath: "/Applications/Ghostty.app",
-            icon: NSWorkspace.shared.icon(forFile: "/Applications/Ghostty.app")
-        ),
-        TerminalOption(
-            id: "hyper",
-            name: "Hyper",
-            appPath: "/Applications/Hyper.app",
-            icon: NSWorkspace.shared.icon(forFile: "/Applications/Hyper.app")
-        ),
+    // Known terminal bundle IDs — discovery looks these up via Spotlight/NSWorkspace.
+    // Add a new bundle ID here to support a new terminal automatically.
+    static let knownBundleIDs: [String] = [
+        "com.apple.Terminal",
+        "com.googlecode.iterm2",
+        "dev.warp.Warp-Stable",
+        "com.mitchellh.ghostty",
+        "co.zeit.hyper",
+        "io.alacritty",
+        "net.kovidgoyal.kitty",
+        "com.github.wez.wezterm",
+        "com.tabby.app",
+        "com.SecureCRT.SecureCRT",
+        "io.fig.desktop",          // Amazon Q / Fig
+        "com.cursor.ide",
     ]
+
+    @MainActor static var all: [TerminalOption] {
+        var result: [TerminalOption] = []
+        let ws = NSWorkspace.shared
+
+        for bundleID in knownBundleIDs {
+            guard let url = ws.urlForApplication(withBundleIdentifier: bundleID) else { continue }
+            let path = url.path
+            let appName = Bundle(path: path)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+                ?? Bundle(path: path)?.object(forInfoDictionaryKey: "CFBundleName") as? String
+                ?? url.deletingPathExtension().lastPathComponent
+            let icon = ws.icon(forFile: path)
+            result.append(TerminalOption(id: bundleID, name: appName, appPath: path, icon: icon))
+        }
+
+        return result
+    }
 
     @MainActor static var installed: [TerminalOption] { all.filter(\.isInstalled) }
 }

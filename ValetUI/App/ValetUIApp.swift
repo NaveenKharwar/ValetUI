@@ -12,7 +12,7 @@ struct ValetUIApp: App {
         } label: {
             MenuBarIcon(status: appViewModel.valetStatus, isRefreshing: appViewModel.isRefreshing)
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         Window("New WordPress Site", id: "new-site") {
             NewSiteView()
@@ -63,7 +63,19 @@ private struct MenuBarIcon: View {
     let isRefreshing: Bool
 
     var body: some View {
-        Image(systemName: isRefreshing ? "arrow.clockwise" : (status == .running ? "v.circle.fill" : "v.circle"))
-            .foregroundStyle(isRefreshing ? Color.primary : (status == .running ? Color.green : Color.red))
+        ZStack {
+            Image("MenuBarIcon")
+                .renderingMode(.template)
+            if isRefreshing {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 8, weight: .bold))
+                    .offset(x: 5, y: 5)
+            } else {
+                Circle()
+                    .fill(status == .running ? Color.green : Color.red)
+                    .frame(width: 5, height: 5)
+                    .offset(x: 5, y: -5)
+            }
+        }
     }
 }

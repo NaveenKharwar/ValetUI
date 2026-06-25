@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.2.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>4</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2025 ValetUI Contributors. MIT License.</string>
+	<string>Copyright © 2026 ValetUI Contributors. MIT License.</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>ValetUI needs to open Terminal to run commands in your site directory.</string>
 	<key>NSPrincipalClass</key>

@@ -119,7 +119,7 @@ final class SubdomainManagerViewModel {
 
     private func resolvedTerminal() -> TerminalOption? {
         AppSettings.shared.resolvedTerminal
-            ?? TerminalOption.all.first { $0.id == "terminal" }
+            ?? TerminalOption.all.first { $0.id == "com.apple.Terminal" }
     }
 
     // MARK: - Reachability

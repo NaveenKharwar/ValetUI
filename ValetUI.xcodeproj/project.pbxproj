@@ -26,6 +26,12 @@
 		AA00000000007E /* EditorPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000007D /* EditorPrefsView.swift */; };
 		AA000000000080 /* TerminalPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000007F /* TerminalPrefsView.swift */; };
 		AA000000000082 /* ValetPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000081 /* ValetPrefsView.swift */; };
+		AA0000000000A1 /* AboutPrefsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000008F /* AboutPrefsView.swift */; };
+		AA0000000000B2 /* PanelRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000B1 /* PanelRowView.swift */; };
+		AA0000000000B4 /* SitesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000B3 /* SitesPanelView.swift */; };
+		AA0000000000B6 /* PHPPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000B5 /* PHPPanelView.swift */; };
+		AA0000000000B8 /* ServicesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000B7 /* ServicesPanelView.swift */; };
+		AA0000000000BA /* LogsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000B9 /* LogsPanelView.swift */; };
 		AA000000000084 /* SiteDeleterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000085 /* SiteDeleterService.swift */; };
 		AA000000000086 /* DeleteSiteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000087 /* DeleteSiteView.swift */; };
 		AA000000000023 /* ValetParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000022 /* ValetParser.swift */; };
@@ -35,13 +41,6 @@
 		AA00000000002D /* PHPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000002C /* PHPViewModel.swift */; };
 		AA00000000002F /* ServicesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000002E /* ServicesViewModel.swift */; };
 		AA000000000033 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000032 /* MenuContentView.swift */; };
-		AA000000000035 /* StatusHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000034 /* StatusHeaderView.swift */; };
-		AA000000000037 /* SitesMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000036 /* SitesMenuView.swift */; };
-		AA000000000039 /* SiteRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000038 /* SiteRowView.swift */; };
-		AA00000000003B /* PHPMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000003A /* PHPMenuView.swift */; };
-		AA00000000003D /* ServicesMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000003C /* ServicesMenuView.swift */; };
-		AA00000000003F /* LogsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000003E /* LogsMenuView.swift */; };
-		AA000000000041 /* SettingsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000040 /* SettingsMenuView.swift */; };
 		AA000000000043 /* OnboardingMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000042 /* OnboardingMenuView.swift */; };
 		AA000000000045 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000044 /* AppConstants.swift */; };
 		AA000000000047 /* String+Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000046 /* String+Shell.swift */; };
@@ -93,6 +92,12 @@
 		AA00000000007D /* EditorPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EditorPrefsView.swift; path = ValetUI/Views/Preferences/EditorPrefsView.swift; sourceTree = SOURCE_ROOT; };
 		AA00000000007F /* TerminalPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TerminalPrefsView.swift; path = ValetUI/Views/Preferences/TerminalPrefsView.swift; sourceTree = SOURCE_ROOT; };
 		AA000000000081 /* ValetPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ValetPrefsView.swift; path = ValetUI/Views/Preferences/ValetPrefsView.swift; sourceTree = SOURCE_ROOT; };
+		AA00000000008F /* AboutPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AboutPrefsView.swift; path = ValetUI/Views/Preferences/AboutPrefsView.swift; sourceTree = SOURCE_ROOT; };
+		AA0000000000B1 /* PanelRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PanelRowView.swift; path = ValetUI/Views/PanelRowView.swift; sourceTree = SOURCE_ROOT; };
+		AA0000000000B3 /* SitesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SitesPanelView.swift; path = ValetUI/Views/SitesPanelView.swift; sourceTree = SOURCE_ROOT; };
+		AA0000000000B5 /* PHPPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PHPPanelView.swift; path = ValetUI/Views/PHPPanelView.swift; sourceTree = SOURCE_ROOT; };
+		AA0000000000B7 /* ServicesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ServicesPanelView.swift; path = ValetUI/Views/ServicesPanelView.swift; sourceTree = SOURCE_ROOT; };
+		AA0000000000B9 /* LogsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LogsPanelView.swift; path = ValetUI/Views/LogsPanelView.swift; sourceTree = SOURCE_ROOT; };
 		AA000000000085 /* SiteDeleterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteDeleterService.swift; sourceTree = "<group>"; };
 		AA000000000087 /* DeleteSiteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteSiteView.swift; sourceTree = "<group>"; };
 		AA000000000079 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
@@ -100,6 +105,12 @@
 		AA00000000007D /* EditorPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorPrefsView.swift; sourceTree = "<group>"; };
 		AA00000000007F /* TerminalPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalPrefsView.swift; sourceTree = "<group>"; };
 		AA000000000081 /* ValetPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetPrefsView.swift; sourceTree = "<group>"; };
+		AA00000000008F /* AboutPrefsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutPrefsView.swift; sourceTree = "<group>"; };
+		AA0000000000B1 /* PanelRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelRowView.swift; sourceTree = "<group>"; };
+		AA0000000000B3 /* SitesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SitesPanelView.swift; sourceTree = "<group>"; };
+		AA0000000000B5 /* PHPPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHPPanelView.swift; sourceTree = "<group>"; };
+		AA0000000000B7 /* ServicesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesPanelView.swift; sourceTree = "<group>"; };
+		AA0000000000B9 /* LogsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsPanelView.swift; sourceTree = "<group>"; };
 		AA000000000022 /* ValetParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValetParser.swift; sourceTree = "<group>"; };
 		AA000000000024 /* BrewParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewParser.swift; sourceTree = "<group>"; };
 		AA000000000026 /* ServiceParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceParser.swift; sourceTree = "<group>"; };
@@ -107,13 +118,6 @@
 		AA00000000002C /* PHPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHPViewModel.swift; sourceTree = "<group>"; };
 		AA00000000002E /* ServicesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesViewModel.swift; sourceTree = "<group>"; };
 		AA000000000032 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
-		AA000000000034 /* StatusHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusHeaderView.swift; sourceTree = "<group>"; };
-		AA000000000036 /* SitesMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SitesMenuView.swift; sourceTree = "<group>"; };
-		AA000000000038 /* SiteRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteRowView.swift; sourceTree = "<group>"; };
-		AA00000000003A /* PHPMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHPMenuView.swift; sourceTree = "<group>"; };
-		AA00000000003C /* ServicesMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesMenuView.swift; sourceTree = "<group>"; };
-		AA00000000003E /* LogsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsMenuView.swift; sourceTree = "<group>"; };
-		AA000000000040 /* SettingsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMenuView.swift; sourceTree = "<group>"; };
 		AA000000000042 /* OnboardingMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingMenuView.swift; sourceTree = "<group>"; };
 		AA000000000044 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		AA000000000046 /* String+Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Shell.swift"; sourceTree = "<group>"; };
@@ -238,13 +242,11 @@
 			isa = PBXGroup;
 			children = (
 				AA000000000032 /* MenuContentView.swift */,
-				AA000000000034 /* StatusHeaderView.swift */,
-				AA000000000036 /* SitesMenuView.swift */,
-				AA000000000038 /* SiteRowView.swift */,
-				AA00000000003A /* PHPMenuView.swift */,
-				AA00000000003C /* ServicesMenuView.swift */,
-				AA00000000003E /* LogsMenuView.swift */,
-				AA000000000040 /* SettingsMenuView.swift */,
+				AA0000000000B1 /* PanelRowView.swift */,
+				AA0000000000B3 /* SitesPanelView.swift */,
+				AA0000000000B5 /* PHPPanelView.swift */,
+				AA0000000000B7 /* ServicesPanelView.swift */,
+				AA0000000000B9 /* LogsPanelView.swift */,
 				AA000000000042 /* OnboardingMenuView.swift */,
 				AA000000000073 /* NewSiteView.swift */,
 				AA000000000087 /* DeleteSiteView.swift */,
@@ -274,6 +276,7 @@
 				AA00000000007D /* EditorPrefsView.swift */,
 				AA00000000007F /* TerminalPrefsView.swift */,
 				AA000000000081 /* ValetPrefsView.swift */,
+				AA00000000008F /* AboutPrefsView.swift */,
 			);
 			path = Preferences;
 			sourceTree = "<group>";
@@ -429,6 +432,7 @@
 				AA00000000007E /* EditorPrefsView.swift in Sources */,
 				AA000000000080 /* TerminalPrefsView.swift in Sources */,
 				AA000000000082 /* ValetPrefsView.swift in Sources */,
+				AA0000000000A1 /* AboutPrefsView.swift in Sources */,
 				AA000000000084 /* SiteDeleterService.swift in Sources */,
 				AA000000000086 /* DeleteSiteView.swift in Sources */,
 				AA000000000094 /* SubdomainService.swift in Sources */,
@@ -441,13 +445,11 @@
 				AA00000000002D /* PHPViewModel.swift in Sources */,
 				AA00000000002F /* ServicesViewModel.swift in Sources */,
 				AA000000000033 /* MenuContentView.swift in Sources */,
-				AA000000000035 /* StatusHeaderView.swift in Sources */,
-				AA000000000037 /* SitesMenuView.swift in Sources */,
-				AA000000000039 /* SiteRowView.swift in Sources */,
-				AA00000000003B /* PHPMenuView.swift in Sources */,
-				AA00000000003D /* ServicesMenuView.swift in Sources */,
-				AA00000000003F /* LogsMenuView.swift in Sources */,
-				AA000000000041 /* SettingsMenuView.swift in Sources */,
+				AA0000000000B2 /* PanelRowView.swift in Sources */,
+				AA0000000000B4 /* SitesPanelView.swift in Sources */,
+				AA0000000000B6 /* PHPPanelView.swift in Sources */,
+				AA0000000000B8 /* ServicesPanelView.swift in Sources */,
+				AA0000000000BA /* LogsPanelView.swift in Sources */,
 				AA000000000043 /* OnboardingMenuView.swift in Sources */,
 				AA000000000045 /* AppConstants.swift in Sources */,
 				AA000000000047 /* String+Shell.swift in Sources */,

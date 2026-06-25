@@ -1,98 +1,223 @@
 import SwiftUI
 
+enum PanelDestination {
+    case sites, php, services, logs
+}
+
 struct MenuContentView: View {
     @Environment(AppViewModel.self) private var vm
     @Environment(\.openWindow) private var openWindow
+    @State private var destination: PanelDestination? = nil
 
     var body: some View {
         if !vm.isBrewInstalled || !vm.isValetInstalled {
             OnboardingMenuView()
                 .environment(vm)
+        } else if let dest = destination {
+            destinationView(dest)
         } else {
-            mainMenu
+            mainPanel
         }
     }
 
+    // MARK: - Destination router
+
     @ViewBuilder
-    private var mainMenu: some View {
-        // Status header — non-interactive info rows
-        StatusHeaderView()
-            .environment(vm)
-            // Menu-style MenuBarExtra builds its content on every open —
-            // refresh here so data is current without constant polling
-            .onAppear {
-                Task { await vm.refresh() }
+    private func destinationView(_ dest: PanelDestination) -> some View {
+        switch dest {
+        case .sites:
+            SitesPanelView(onBack: { destination = nil })
+                .environment(vm)
+        case .php:
+            PHPPanelView(onBack: { destination = nil })
+                .environment(vm)
+        case .services:
+            ServicesPanelView(onBack: { destination = nil })
+                .environment(vm)
+        case .logs:
+            LogsPanelView(onBack: { destination = nil })
+        }
+    }
+
+    // MARK: - Main panel
+
+    private var mainPanel: some View {
+        VStack(spacing: 0) {
+            headerCard
+                .padding(.horizontal, 10)
+                .padding(.top, 10)
+
+            if let error = vm.anyError {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                    Text(error)
+                        .font(.caption)
+                        .lineLimit(2)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.red)
+                .padding(.horizontal, 10)
+                .padding(.top, 6)
             }
 
-        Divider()
+            VStack(spacing: 0) {
+                PanelRow(
+                    icon: "arrow.clockwise",
+                    label: vm.isRefreshing ? "Refreshing…" : "Refresh",
+                    isDisabled: vm.isRefreshing
+                ) {
+                    Task { await vm.refresh() }
+                }
 
-        // Refresh
-        Button {
-            Task { await vm.refresh() }
-        } label: {
-            Label(vm.isRefreshing ? "Refreshing…" : "Refresh", systemImage: "arrow.clockwise")
+                PanelDivider()
+
+                PanelRowCustomIcon(
+                    image: WordPressLogo.nsImage(size: 16),
+                    label: "New WordPress Site…",
+                    isDisabled: !vm.isWPCLIInstalled || !vm.isMySQLInstalled
+                ) {
+                    openWindow(id: "new-site")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+
+                PanelNavRow(icon: "globe", label: "Sites") { destination = .sites }
+                PanelDivider()
+                PanelNavRow(
+                    icon: "chevron.left.forwardslash.chevron.right",
+                    label: "PHP \(vm.phpViewModel.currentVersion)"
+                ) { destination = .php }
+                PanelDivider()
+                PanelNavRow(icon: "gearshape.2", label: "Services") { destination = .services }
+                PanelNavRow(icon: "list.bullet.rectangle", label: "Logs") { destination = .logs }
+                PanelDivider()
+
+                PanelRow(icon: "gearshape", label: "Preferences…") {
+                    openWindow(id: "preferences")
+                    NSApp.activate(ignoringOtherApps: true)
+                    NSApp.windows
+                        .first { $0.title == "Preferences" }?
+                        .makeKeyAndOrderFront(nil)
+                }
+
+                PanelDivider()
+
+                PanelRow(icon: "power", label: "Quit ValetUI", isDestructive: true) {
+                    NSApplication.shared.terminate(nil)
+                }
+            }
+            .padding(.vertical, 4)
         }
-        .disabled(vm.isRefreshing)
+        .frame(width: 280)
+        .onAppear { Task { await vm.refresh() } }
+    }
 
-        Divider()
+    // MARK: - Header Card
 
-        // New WordPress Site
-        Button {
-            openWindow(id: "new-site")
-            NSApp.activate(ignoringOtherApps: true)
-        } label: {
-            Label {
-                Text("New WordPress Site…")
-                    + ((!vm.isWPCLIInstalled || !vm.isMySQLInstalled)
-                        ? Text(" (wp-cli & mysql required)").foregroundStyle(.secondary)
-                        : Text(""))
-            } icon: {
-                Image(nsImage: WordPressLogo.nsImage(size: 16))
-                    .opacity((!vm.isWPCLIInstalled || !vm.isMySQLInstalled) ? 0.4 : 1.0)
+    private var headerCard: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Text("ValetUI")
+                    .font(.system(.subheadline, design: .default).weight(.semibold))
+                    .foregroundStyle(.primary)
+                Spacer()
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 7, height: 7)
+                    Text(vm.valetStatus.displayName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(statusColor)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(statusColor.opacity(0.12), in: Capsule())
+            }
+
+            HStack(spacing: 8) {
+                StatChip(icon: "chevron.left.forwardslash.chevron.right", label: "PHP", value: vm.phpViewModel.currentVersion)
+                StatChip(icon: "globe", label: "Sites", value: "\(vm.sites.count)")
             }
         }
-        .disabled(!vm.isWPCLIInstalled || !vm.isMySQLInstalled)
+        .padding(12)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+    }
 
-        // Sites
-        SitesMenuView()
-            .environment(vm)
-
-        Divider()
-
-        // PHP
-        PHPMenuView()
-            .environment(vm)
-
-        Divider()
-
-        // Services
-        ServicesMenuView()
-            .environment(vm)
-
-        // Logs
-        LogsMenuView()
-
-        Divider()
-
-        // Settings
-        SettingsMenuView()
-            .environment(vm)
-
-        Divider()
-
-        Button("Quit ValetUI") {
-            NSApplication.shared.terminate(nil)
+    private var statusColor: Color {
+        switch vm.valetStatus {
+        case .running: return .green
+        case .stopped: return .red
+        case .unknown: return .orange
         }
-        .keyboardShortcut("q")
+    }
+}
 
-        // Error banner (shown as disabled menu item)
-        if let error = vm.anyError {
-            Divider()
-            Text("⚠ \(error)")
-                .font(.caption)
-                .foregroundStyle(.red)
-                .truncationMode(.tail)
-                .lineLimit(2)
+// MARK: - Stat Chip
+
+private struct StatChip: View {
+    let icon: String
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.primary)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.background.opacity(0.5), in: RoundedRectangle(cornerRadius: 7))
+    }
+}
+
+// MARK: - Nav Row
+
+struct PanelNavRow: View {
+    let icon: String
+    let label: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 13))
+                    .frame(width: 16)
+                    .foregroundStyle(.primary)
+                Text(label)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+            .background(
+                isHovered ? Color.primary.opacity(0.08) : Color.clear,
+                in: RoundedRectangle(cornerRadius: 6)
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
     }
 }

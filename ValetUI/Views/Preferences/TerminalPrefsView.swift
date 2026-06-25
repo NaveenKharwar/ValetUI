@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TerminalPrefsView: View {
-    @State private var selectedTerminalID: String = "terminal"
+    @State private var selectedTerminalID: String = "com.apple.Terminal"
 
     private let installedTerminals = TerminalOption.installed
 
@@ -21,12 +21,18 @@ struct TerminalPrefsView: View {
                 Text("Used when opening a terminal at a site directory")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } footer: {
+                if let selected = installedTerminals.first(where: { $0.id == selectedTerminalID }) {
+                    Label("Default terminal is set to \(selected.name).", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .formStyle(.grouped)
         .padding()
         .onAppear {
-            selectedTerminalID = UserDefaults.standard.string(forKey: "defaultTerminalID") ?? "terminal"
+            selectedTerminalID = UserDefaults.standard.string(forKey: "defaultTerminalID") ?? "com.apple.Terminal"
         }
     }
 

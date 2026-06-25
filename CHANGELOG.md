@@ -4,6 +4,33 @@ All notable changes to ValetUI are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-25
+
+### Added
+- Custom app icon and menu bar icon (valet ticket + V mark design)
+- Menu bar icon now shows a green/red status dot overlay instead of changing SF Symbol
+- Floating panel UI (`MenuBarExtra` window style) — replaces native menu style with a real card-based window
+- PHP panel footer: "Want more PHP versions?" hint with a one-click copy of the brew install command
+- Preferences status feedback: each tab shows a live confirmation line ("Default terminal is set to iTerm2") that updates instantly on change
+
+### Changed
+- Entire navigation switched from `NavigationStack` to `@State`-based routing — eliminates whitespace, fixed heights, and toolbar flicker from native nav bar
+- All manual/hardcoded `frame(height:)` removed throughout — panel windows now size dynamically from content
+- Site expanded actions redesigned into grouped cards (Open / Manage / Danger sections) with dividers and subtle borders
+- Terminal integration rewritten: uses `NSWorkspace.open(_:withApplicationAt:)` for directory opens and a temp `.command` bash file for commands — no AppleScript, no escaping issues, works with any terminal
+- Terminal discovery switched from hardcoded paths to `NSWorkspace.urlForApplication(withBundleIdentifier:)` — automatically finds iTerm2, Warp, Ghostty, Alacritty, WezTerm, Kitty, and others wherever installed
+- All terminal actions (Open in Terminal, Share Publicly, subdomain commands) now open a new window instead of a new tab
+- Share Publicly sources `~/.zshrc` before running `valet share` so PATH is correct in any terminal
+
+### Fixed
+- Rows only clickable on text label — added `.contentShape(Rectangle())` across all panel rows, action rows, and PHP picker options
+- PHP version picker inside site detail not clickable on arrow or empty area — fixed missing hit target
+- Sites panel whitespace at top when expanding a site — added divider and top padding between site header and action cards
+- About tab showing wrong copyright year (2025 → 2026) and version (1.0.0 → dynamic from bundle)
+- Preferences window appearing behind other windows — `makeKeyAndOrderFront` called on open
+- Launch at Login code duplication between quick settings and Preferences — consolidated into `LaunchAtLoginService` singleton
+- Duplicate menu bar icon after Login Item restart — resolved by running from `/Applications` only
+
 ## [1.1.1] - 2026-06-12
 
 ### Fixed

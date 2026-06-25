@@ -49,7 +49,7 @@ final class AppSettings {
     }
 
     var defaultTerminalID: String {
-        get { UserDefaults.standard.string(forKey: Keys.defaultTerminalID) ?? "terminal" }
+        get { UserDefaults.standard.string(forKey: Keys.defaultTerminalID) ?? "com.apple.Terminal" }
         set { UserDefaults.standard.set(newValue, forKey: Keys.defaultTerminalID) }
     }
 

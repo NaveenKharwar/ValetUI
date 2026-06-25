@@ -2,22 +2,49 @@
 
 A native macOS menu bar app for [Laravel Valet](https://laravel.com/docs/valet) — manage your local development environments without opening Terminal.
 
-![Menu bar icon](https://github.com/user-attachments/assets/4b23eb3d-14fe-4474-a1d5-256f4673dd75)
+![ValetUI](ADD_HERO_SCREENSHOT_URL_HERE)
+
+## Screenshots
+
+**Main panel** — floating card window with live Valet status, PHP version, and site count
+
+![Main panel](ADD_SCREENSHOT_URL_HERE)
+
+**Site actions** — expand any site to reveal grouped Open / Manage / Danger action cards
+
+![Site expanded](ADD_SCREENSHOT_URL_HERE)
+
+**PHP panel** — switch versions with one click; hints for installing more
+
+![PHP panel](ADD_SCREENSHOT_URL_HERE)
+
+**Preferences** — terminal and editor picker with live confirmation feedback
+
+![Preferences](ADD_SCREENSHOT_URL_HERE)
+
+**About** — app icon, version, and links
+
+![About](ADD_SCREENSHOT_URL_HERE)
 
 ## Features
 
-- **Live status** — green/red indicator shows whether Valet is running
-- **Sites management** — lists all linked and parked sites; open in browser, Finder, copy URL, toggle HTTPS
-- **PHP switcher** — detects installed Homebrew PHP versions, switch with one click
-- **Per-site PHP** — isolate a site to a specific PHP version (`valet isolate`) from the site menu
-- **Subdomain manager** — Valet serves any subdomain natively; ValetUI tracks yours, enables per-subdomain HTTPS, checks reachability, and fixes WordPress URL handling (with automatic wp-config.php backup)
-- **Share publicly** — one click opens a tunnel via `valet share` (ngrok, cloudflared, or Expose), with preflight checks for missing tools or tokens
-- **Services control** — restart Valet, Nginx, PHP-FPM, DNSMasq
-- **Log viewer** — live in-app tail of Valet/Nginx/PHP logs, with one-click Console.app handoff
-- **WordPress site creator** — scaffold a full local WordPress install (directory, database, wp-config, admin user) via WP-CLI
-- **Launch at Login** — via native ServiceManagement (no helper bundle)
-- **Always fresh** — data refreshes every time the menu opens; optional background polling for the status icon
-- **Onboarding** — detects missing Homebrew, Valet, or PHP with setup links
+- **Live status** — green/red dot on the menu bar icon shows Valet state at a glance
+- **Floating panel** — card-based window with a header showing PHP version, site count, and Valet status
+- **Sites** — all linked and parked sites in one list; expand any site for grouped actions (Open, Manage, Danger)
+- **Per-site actions** — open in browser, editor, terminal, or Finder; copy URL; share publicly; manage subdomains; toggle HTTPS; switch PHP version; delete
+- **PHP switcher** — lists installed Homebrew PHP versions; switch with one click; hints for installing more
+- **Per-site PHP isolation** — pin any site to a specific PHP version (`valet isolate`) without leaving the app
+- **Subdomain manager** — per-subdomain HTTPS, reachability checks, and WordPress URL auto-fix (wp-config.php patched with backup)
+- **Share publicly** — opens a `valet share` tunnel (ngrok, cloudflared, or Expose) in a new terminal window; preflight checks catch missing tools or tokens before opening
+- **Services** — restart Valet, Nginx, PHP-FPM, DNSMasq individually or all at once
+- **Log viewer** — live tail of Valet/Nginx/PHP logs in-app, with Console.app handoff
+- **WordPress creator** — scaffold a full local WordPress install (directory, database, wp-config, admin user) via WP-CLI
+- **Terminal auto-discovery** — finds iTerm2, Warp, Ghostty, Alacritty, WezTerm, Kitty, and more wherever installed; always opens a new window
+- **Preferences** — set default terminal and editor; each picker shows instant confirmation ("Default terminal is set to iTerm2")
+- **About** — version, copyright, check for updates, and link to source
+- **Launch at Login** — native ServiceManagement, no helper bundle
+- **Auto-refresh** — panel refreshes on every open; optional background polling keeps the status dot current
+- **Onboarding** — detects missing Homebrew, Valet, or PHP with setup instructions
 - **Dark mode** — automatic, native macOS appearance
 
 Works on Apple Silicon and Intel Macs (Homebrew prefix auto-detected).
@@ -172,7 +199,7 @@ ValetUI/
 ├── Parsers/        ValetParser, BrewParser, ServiceParser (pure, tested)
 ├── ViewModels/     AppViewModel (status, sites, orchestration) +
 │                   PHPViewModel / ServicesViewModel (domain state & actions)
-├── Views/          SwiftUI menu views, log viewer, subdomain manager
+├── Views/          SwiftUI panel views (floating window UI), log viewer, subdomain manager
 └── Utilities/      Constants, LogTailer, extensions
 ValetUITests/       Standalone unit-test bundle
 ```
@@ -181,7 +208,7 @@ ValetUITests/       Standalone unit-test bundle
 - **Defense in depth**: site names validated (`Site.isValidName`) before reaching SQL identifiers, AppleScript, or Terminal commands; MySQL passwords passed via `MYSQL_PWD` env var, never argv
 - **Read, don't shell**: Valet state (sites, TLD, certs, PHP isolation) comes from `~/.config/valet/` files directly — subprocesses only where unavoidable
 - **Subdomains**: Valet serves them natively (DnsMasq wildcard + server.php fallback) — ValetUI keeps a registry in Application Support and adds HTTPS, reachability checks, and WordPress URL fixes on top
-- **sudo-required commands** (`valet secure/unsecure/isolate/share`): opened in Terminal via AppleScript — the app never asks for your password
+- **sudo-required commands** (`valet secure/unsecure/isolate/share`): opened in a new terminal window via `NSWorkspace` + a temp `.command` script — no AppleScript, no escaping issues, works with any terminal
 - **Concurrency**: Swift 6 strict mode; `actor` for shell service, `@Observable @MainActor` for all UI state
 - **Refresh model**: on every menu open, plus optional background polling for the status icon
 - **Launch at Login**: `SMAppService.mainApp` (ServiceManagement framework, macOS 13+)

@@ -25,6 +25,15 @@ struct EditorPrefsView: View {
                 Text("Used when opening a site folder from the Sites menu")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } footer: {
+                let editorName: String? = selectedEditorID == "custom"
+                    ? (customEditorPath.isEmpty ? nil : URL(fileURLWithPath: customEditorPath).deletingPathExtension().lastPathComponent)
+                    : installedEditors.first(where: { $0.id == selectedEditorID })?.name
+                if let name = editorName {
+                    Label("Default editor is set to \(name).", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if selectedEditorID == "custom" {
