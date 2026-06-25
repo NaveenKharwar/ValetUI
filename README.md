@@ -2,29 +2,27 @@
 
 A native macOS menu bar app for [Laravel Valet](https://laravel.com/docs/valet) — manage your local development environments without opening Terminal.
 
-![ValetUI](ADD_HERO_SCREENSHOT_URL_HERE)
-
 ## Screenshots
 
 **Main panel** — floating card window with live Valet status, PHP version, and site count
 
-![Main panel](ADD_SCREENSHOT_URL_HERE)
+![Main panel](https://github.com/user-attachments/assets/42d81a00-2593-4640-b06f-366ada1345b9)
 
 **Site actions** — expand any site to reveal grouped Open / Manage / Danger action cards
 
-![Site expanded](ADD_SCREENSHOT_URL_HERE)
+![Site expanded](https://github.com/user-attachments/assets/41946e1b-9486-4646-98cf-83ab9650afd2)
 
 **PHP panel** — switch versions with one click; hints for installing more
 
-![PHP panel](ADD_SCREENSHOT_URL_HERE)
+![PHP panel](https://github.com/user-attachments/assets/25140cef-f4de-4989-8eb8-05da858f384b)
 
 **Preferences** — terminal and editor picker with live confirmation feedback
 
-![Preferences](ADD_SCREENSHOT_URL_HERE)
+![Preferences](https://github.com/user-attachments/assets/302d08bd-66db-42e7-89fc-c66e9a8da87c)
 
 **About** — app icon, version, and links
 
-![About](ADD_SCREENSHOT_URL_HERE)
+![About](https://github.com/user-attachments/assets/ad0d1fc1-da1e-438b-8b10-390147a8527b)
 
 ## Features
 
