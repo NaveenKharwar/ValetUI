@@ -53,6 +53,14 @@ private struct SitePanelRow: View {
 
     @State private var isExpanded = false
     @State private var isHovered = false
+    @State private var isLoggingIn = false
+    @State private var isCopyingLogin = false
+    @State private var loginURLCopied = false
+    @State private var loginError: String? = nil
+
+    private var isWordPress: Bool {
+        WPConfigService.isWordPressSite(at: site.path)
+    }
 
     private var phpDisplayName: String? {
         guard let brewName = site.isolatedPHP else { return nil }
@@ -115,6 +123,59 @@ private struct SitePanelRow: View {
                         SiteActionRow(icon: "safari", label: "Open in Browser") {
                             guard let url = URL(string: site.url) else { return }
                             NSWorkspace.shared.open(url)
+                        }
+                        if isWordPress {
+                            Divider().padding(.leading, 36)
+                            SiteActionRow(
+                                icon: "person.badge.key",
+                                label: isLoggingIn ? "Logging in…" : "Login as Admin"
+                            ) {
+                                guard !isLoggingIn, !isCopyingLogin else { return }
+                                isLoggingIn = true
+                                loginError = nil
+                                Task {
+                                    defer { isLoggingIn = false }
+                                    let result = await WPAutoLoginService.generateAutoLoginURL(
+                                        at: site.path, siteURL: site.url)
+                                    if let urlString = result.url, let url = URL(string: urlString) {
+                                        NSWorkspace.shared.open(url)
+                                    } else {
+                                        let alert = NSAlert()
+                                        alert.messageText = "Login failed"
+                                        alert.informativeText = result.error ?? "Unknown error"
+                                        alert.alertStyle = .warning
+                                        alert.runModal()
+                                    }
+                                }
+                            }
+                            Divider().padding(.leading, 36)
+                            SiteActionRow(
+                                icon: loginURLCopied ? "checkmark" : "link.badge.plus",
+                                label: isCopyingLogin ? "Generating…" : (loginURLCopied ? "Copied!" : "Copy Login URL")
+                            ) {
+                                guard !isLoggingIn, !isCopyingLogin else { return }
+                                isCopyingLogin = true
+                                loginURLCopied = false
+                                loginError = nil
+                                Task {
+                                    defer { isCopyingLogin = false }
+                                    let result = await WPAutoLoginService.generateAutoLoginURL(
+                                        at: site.path, siteURL: site.url)
+                                    if let urlString = result.url {
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.setString(urlString, forType: .string)
+                                        loginURLCopied = true
+                                        try? await Task.sleep(for: .seconds(2))
+                                        loginURLCopied = false
+                                    } else {
+                                        let alert = NSAlert()
+                                        alert.messageText = "Login failed"
+                                        alert.informativeText = result.error ?? "Unknown error"
+                                        alert.alertStyle = .warning
+                                        alert.runModal()
+                                    }
+                                }
+                            }
                         }
                         if let editor = AppSettings.shared.resolvedEditor {
                             Divider().padding(.leading, 36)

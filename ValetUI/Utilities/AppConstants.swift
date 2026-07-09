@@ -32,6 +32,34 @@ enum AppConstants {
         return paths.first { FileManager.default.fileExists(atPath: $0) } ?? "/opt/homebrew/bin/mysql"
     }
 
+    /// Unix socket file for the running MySQL/MariaDB instance.
+    /// Needed when PHP is invoked from a GUI app context where `localhost`
+    /// doesn't resolve to the socket automatically.
+    /// Uses attributesOfItem — FileManager.fileExists returns false for socket files.
+    static var resolvedMySQLSocket: String? {
+        let candidates = [
+            "/tmp/mysql.sock",
+            "/opt/homebrew/var/mysql/mysql.sock",
+            "/usr/local/var/mysql/mysql.sock",
+            "/var/run/mysqld/mysqld.sock",
+        ]
+        return candidates.first { path in
+            guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+                  let type = attrs[.type] as? FileAttributeType else { return false }
+            return type == .typeSocket
+        }
+    }
+
+    /// PHP -d args that point mysqli/PDO at the correct Unix socket.
+    /// Empty when no socket is found (PHP falls back to its compiled default).
+    static var mysqlSocketArgs: [String] {
+        guard let socket = resolvedMySQLSocket else { return [] }
+        return [
+            "-d", "mysqli.default_socket=\(socket)",
+            "-d", "pdo_mysql.default_socket=\(socket)",
+        ]
+    }
+
     static var valetPath: String {
         let composerBin = "\(NSHomeDirectory())/.composer/vendor/bin/valet"
         if FileManager.default.fileExists(atPath: composerBin) { return composerBin }

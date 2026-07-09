@@ -37,6 +37,7 @@ A native macOS menu bar app for [Laravel Valet](https://laravel.com/docs/valet) 
 - **Services** — restart Valet, Nginx, PHP-FPM, DNSMasq individually or all at once
 - **Log viewer** — live tail of Valet/Nginx/PHP logs in-app, with Console.app handoff
 - **WordPress creator** — scaffold a full local WordPress install (directory, database, wp-config, admin user) via WP-CLI
+- **WordPress one-click login** — "Login as Admin" button on any WordPress site opens the browser already logged in to wp-admin; "Copy Login URL" copies the link for testing in any browser; tokens are one-time-use and expire after 2 minutes
 - **Terminal auto-discovery** — finds iTerm2, Warp, Ghostty, Alacritty, WezTerm, Kitty, and more wherever installed; always opens a new window
 - **Preferences** — set default terminal and editor; each picker shows instant confirmation ("Default terminal is set to iTerm2")
 - **About** — version, copyright, check for updates, and link to source

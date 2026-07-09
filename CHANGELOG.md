@@ -4,6 +4,17 @@ All notable changes to ValetUI are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-07-09
+
+### Added
+- **WordPress one-click admin login** — "Login as Admin" button appears on any WordPress site (detected via `wp-config.php`); uses WP-CLI to generate a one-time token stored as a transient (120 s TTL, deleted after first use) and opens the browser already logged in to wp-admin
+- **Copy Login URL** — companion button copies the auto-login URL to the clipboard so it can be pasted into any browser (useful for cross-browser testing); shows a "Copied!" confirmation for 2 seconds
+- Auto-installs a minimal `valetui-local-dev.php` mu-plugin on first use for sites not created by ValetUI's installer; the handler is a no-op on production (only acts when the query parameter is present)
+- MySQL socket auto-detection for GUI app context — PHP launched from a macOS app does not inherit shell environment, so the correct Unix socket path is injected via `-d mysqli.default_socket` / `-d pdo_mysql.default_socket`
+
+### Fixed
+- WP-CLI commands (user list, eval, core install) now correctly resolve the MySQL socket when invoked from the app process, where `localhost` does not fall back to the socket automatically
+
 ## [1.2.0] - 2026-06-25
 
 ### Added

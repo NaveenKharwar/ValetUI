@@ -155,8 +155,13 @@ final class WordPressInstallerService {
     private func runWPCLI(_ step: Step, args: [String]) async -> Bool {
         // Call PHP directly so -d memory_limit applies — wp is a Phar,
         // not a shell script, so WP_CLI_PHP_ARGS env var is never read.
+        // Also inject the MySQL socket so `localhost` resolves correctly
+        // when PHP is launched from a GUI app (no shell env).
         let memoryLimit = AppSettings.shared.wpCLIMemoryLimit
-        let phpArgs = ["-d", "memory_limit=\(memoryLimit)", AppConstants.resolvedWPCLIPath] + args
+        let phpArgs = ["-d", "memory_limit=\(memoryLimit)"]
+            + AppConstants.mysqlSocketArgs
+            + [AppConstants.resolvedWPCLIPath]
+            + args
         return await runShell(step, exec: AppConstants.resolvedPHPPath, args: phpArgs)
     }
 
@@ -246,6 +251,8 @@ add_filter( 'option_icl_sitepress_settings', function( $settings ) {
     $settings['language_domains'][ $default_lang ] = $main_domain_bare;
     return $settings;
 } );
+
+\(WPAutoLoginService.autoLoginPHPBlock)
 """
         try? content.write(toFile: pluginPath, atomically: true, encoding: .utf8)
     }
