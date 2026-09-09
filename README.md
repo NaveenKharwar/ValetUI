@@ -214,7 +214,10 @@ ValetUITests/       Standalone unit-test bundle
 
 ## FAQ
 
-### How do I change the PHP memory limit for a WordPress site?
+<details>
+<summary><strong>How do I change the PHP memory limit for a WordPress site?</strong></summary>
+
+<br>
 
 #### Step 1 — Find the PHP version your site is using
 
@@ -242,14 +245,23 @@ Replace `<version>` with your version from Step 1. Open the file and set your de
 memory_limit = 256M
 ```
 
-#### Step 3 — Update wp-config.php
+**This is the only file you need to change in most cases.**
 
-WordPress sets its own memory limit at runtime via `WP_MEMORY_LIMIT`. This must match (or be lower than) what you set in Step 2, otherwise WordPress overrides it. Open your site's `wp-config.php` and update:
+#### Step 3 — Update wp-config.php (optional)
+
+WordPress requests its own memory limit at boot via `WP_MEMORY_LIMIT`. By default this is usually `256M`. You only need to touch this file if:
+
+- You want WordPress to use **less** than the PHP limit (e.g. PHP allows 512M but you want WordPress capped at 256M)
+- WordPress Site Health is reporting a value that doesn't match what you set in Step 2
+
+If you do need to change it, open your site's `wp-config.php`:
 
 ```php
 define( 'WP_MEMORY_LIMIT', '256M' );
 define( 'WP_MAX_MEMORY_LIMIT', '256M' );
 ```
+
+> Note: `WP_MEMORY_LIMIT` can never exceed the PHP limit set in Step 2. If it's set higher, PHP silently caps it.
 
 #### Step 4 — Restart Valet
 
@@ -288,6 +300,8 @@ If your site uses an isolated PHP version (e.g. `php@7.4`), you must edit that v
 **Delete the test file when done**
 
 Remove `php-check.php` from your site root once you've confirmed the value — it exposes server info publicly.
+
+</details>
 
 ---
 
