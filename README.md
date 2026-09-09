@@ -212,6 +212,85 @@ ValetUITests/       Standalone unit-test bundle
 - **Refresh model**: on every menu open, plus optional background polling for the status icon
 - **Launch at Login**: `SMAppService.mainApp` (ServiceManagement framework, macOS 13+)
 
+## FAQ
+
+### How do I change the PHP memory limit for a WordPress site?
+
+#### Step 1 — Find the PHP version your site is using
+
+In ValetUI, open the Sites panel and expand your site. The PHP version is shown next to the site name (e.g. `php@7.4`). If no version is shown, the site uses the global PHP version visible in the PHP panel.
+
+Or run in Terminal:
+
+```bash
+php --version
+```
+
+Note the version number (e.g. `7.4`, `8.3`, `8.4`).
+
+#### Step 2 — Edit the right config file
+
+Valet's PHP installs include a `conf.d/php-memory-limits.ini` that controls memory. This file wins over `php.ini`, so edit this one:
+
+```
+/opt/homebrew/etc/php/<version>/conf.d/php-memory-limits.ini
+```
+
+Replace `<version>` with your version from Step 1. Open the file and set your desired value:
+
+```ini
+memory_limit = 256M
+```
+
+#### Step 3 — Update wp-config.php
+
+WordPress sets its own memory limit at runtime via `WP_MEMORY_LIMIT`. This must match (or be lower than) what you set in Step 2, otherwise WordPress overrides it. Open your site's `wp-config.php` and update:
+
+```php
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'WP_MAX_MEMORY_LIMIT', '256M' );
+```
+
+#### Step 4 — Restart Valet
+
+```bash
+valet restart
+```
+
+PHP-FPM caches its config in memory. Without a restart, the running process ignores your changes.
+
+---
+
+#### Changes still not showing? Here's what to check.
+
+**Verify PHP is actually reading the new value**
+
+Create `php-check.php` in your site root:
+
+```php
+<?php echo ini_get('memory_limit');
+```
+
+Open it in a browser (not via CLI). This shows the raw PHP-FPM value before WordPress touches it.
+
+- If it still shows the old value → FPM didn't reload. Run `valet restart` again.
+- If it shows the right value but WordPress Site Health still shows something different → your `WP_MEMORY_LIMIT` in `wp-config.php` doesn't match. Fix Step 3.
+
+**Check you edited the right PHP version's file**
+
+If your site uses an isolated PHP version (e.g. `php@7.4`), you must edit that version's `conf.d/`, not the global one. Each version has its own copy:
+
+```
+/opt/homebrew/etc/php/7.4/conf.d/php-memory-limits.ini
+/opt/homebrew/etc/php/8.3/conf.d/php-memory-limits.ini
+```
+
+**Delete the test file when done**
+
+Remove `php-check.php` from your site root once you've confirmed the value — it exposes server info publicly.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
