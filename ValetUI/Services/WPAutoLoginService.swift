@@ -28,8 +28,13 @@ enum WPAutoLoginService {
             let msg = listResult.stderr.isEmpty ? "exit \(listResult.exitCode)" : listResult.stderr
             return (nil, "wp user list failed: \(msg)")
         }
+        let phpNoticePrefixes = ["Deprecated:", "Warning:", "Notice:", "Fatal error:", "Parse error:"]
         let userID = listResult.stdout
-            .split(separator: " ")
+            .components(separatedBy: .newlines)
+            .filter { line in !phpNoticePrefixes.contains(where: { line.hasPrefix($0) }) }
+            .joined(separator: " ")
+            .components(separatedBy: .whitespaces)
+            .compactMap { Int($0) }
             .first
             .map(String.init) ?? ""
         guard !userID.isEmpty, Int(userID) != nil else {
