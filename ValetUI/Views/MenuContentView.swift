@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum PanelDestination {
-    case sites, php, services, logs
+    case sites, php, logs
 }
 
 struct MenuContentView: View {
@@ -30,9 +30,6 @@ struct MenuContentView: View {
                 .environment(vm)
         case .php:
             PHPPanelView(onBack: { destination = nil })
-                .environment(vm)
-        case .services:
-            ServicesPanelView(onBack: { destination = nil })
                 .environment(vm)
         case .logs:
             LogsPanelView(onBack: { destination = nil })
@@ -91,16 +88,12 @@ struct MenuContentView: View {
                     label: "PHP \(vm.phpViewModel.currentVersion)"
                 ) { destination = .php }
                 PanelDivider()
-                PanelNavRow(icon: "gearshape.2", label: "Services") { destination = .services }
                 PanelNavRow(icon: "list.bullet.rectangle", label: "Logs") { destination = .logs }
                 PanelDivider()
 
                 PanelRow(icon: "gearshape", label: "Preferences…") {
                     openWindow(id: "preferences")
                     NSApp.activate(ignoringOtherApps: true)
-                    NSApp.windows
-                        .first { $0.title == "Preferences" }?
-                        .makeKeyAndOrderFront(nil)
                 }
 
                 PanelDivider()

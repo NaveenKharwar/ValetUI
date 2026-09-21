@@ -38,6 +38,7 @@ final class AppViewModel {
 
         phpViewModel.onGlobalRefresh = { [weak self] in await self?.refresh() }
         servicesViewModel.onGlobalRefresh = { [weak self] in await self?.refresh() }
+        servicesViewModel.onOpenTerminal = { [weak self] command in self?.openTerminal(command: command) }
 
         Task { await checkDependencies() }
         Task { await refresh() }

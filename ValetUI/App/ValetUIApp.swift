@@ -45,8 +45,9 @@ struct ValetUIApp: App {
 
         Window("Preferences", id: "preferences") {
             PreferencesView()
+                .environment(appViewModel)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
         .defaultPosition(.center)
 
         WindowGroup("Log Viewer", id: "log-viewer", for: String.self) { $logPath in

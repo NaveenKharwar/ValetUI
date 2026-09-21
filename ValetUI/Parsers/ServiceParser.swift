@@ -27,18 +27,34 @@ enum ServiceParser {
             let isRunning = status == "started" || status == "running"
 
             // Only surface known Valet-related services
-            let knownNames = ["nginx", "dnsmasq", "php", "php-fpm"] +
+            let knownNames = ["nginx", "dnsmasq", "php", "php-fpm", "mysql", "mariadb"] +
                 KnownService.allCases.map(\.brewServiceName)
 
             let isKnown = knownNames.contains(where: { name.hasPrefix($0) })
             guard isKnown else { continue }
+
+            // Detect root ownership.
+            // started/running → parts: [name, status, user, file]
+            // error           → parts: [name, status, exitCode, user, file]
+            // none            → parts: [name, status]
+            let userField: String?
+            if status == "error" || status == "stopped" {
+                // parts[2] is exit code (numeric), parts[3] is user
+                userField = parts.count >= 4 ? parts[3] : nil
+            } else if status == "started" || status == "running" {
+                userField = parts.count >= 3 ? parts[2] : nil
+            } else {
+                userField = nil
+            }
+            let requiresRoot = userField == "root"
 
             let displayName = resolveDisplayName(name)
             services.append(ServiceStatus(
                 name: name,
                 displayName: displayName,
                 isRunning: isRunning,
-                brewServiceName: name
+                brewServiceName: name,
+                requiresRoot: requiresRoot
             ))
         }
 
@@ -49,6 +65,8 @@ enum ServiceParser {
         if name == "nginx" { return "Nginx" }
         if name == "dnsmasq" { return "DNSMasq" }
         if name.hasPrefix("php") { return "PHP-FPM (\(name))" }
+        if name == "mysql" || name.hasPrefix("mysql@") { return "MySQL" }
+        if name.hasPrefix("mariadb") { return "MariaDB" }
         return name.capitalized
     }
 }
