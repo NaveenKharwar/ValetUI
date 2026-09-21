@@ -14,8 +14,8 @@ final class ServiceParserTests: XCTestCase {
 
     func testParsesKnownServicesOnly() {
         let services = ServiceParser.parseServices(fixture)
-        XCTAssertEqual(services.map(\.name), ["dnsmasq", "nginx", "php", "php@8.2"])
-        XCTAssertFalse(services.contains { $0.name == "mysql" })
+        XCTAssertEqual(services.map(\.name), ["dnsmasq", "mysql", "nginx", "php", "php@8.2"])
+        XCTAssertTrue(services.contains { $0.name == "mysql" })
     }
 
     func testRunningStateDetection() {
