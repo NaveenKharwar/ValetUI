@@ -4,6 +4,14 @@ All notable changes to ValetUI are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-09-22
+
+### Fixed
+- About page now shows the correct version number — `Info.plist` was using a hardcoded `1.2.0` instead of the build variable `$(MARKETING_VERSION)`; version is now derived from the Xcode project's `MARKETING_VERSION` at build time
+
+### Changed
+- `CONTRIBUTING.md` expanded with project architecture, layer rules, naming conventions, concurrency model, shell command safety rules, path resolution guide, security patterns, feature-addition guides, and test coverage map — written to serve both human developers and AI coding agents
+
 ## [1.3.1] - 2026-09-18
 
 ### Fixed
